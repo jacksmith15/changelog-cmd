@@ -147,7 +147,6 @@ SECTION_PARAMS = [
             }
         ),
         id="nested-more-indented-entries",
-        marks=pytest.mark.xfail(strict=True),
     ),
     pytest.param(
         """## [0.1.0] - 2021-04-12
@@ -155,8 +154,19 @@ SECTION_PARAMS = [
 * A single entry
 Some random root level text
 """,
-        ChangelogParseError(r"Invalid changelog at line \d+: 'Some random root level text'"),
-        id="single-entry",
+        ChangelogParseError(r"Line \d+ is not indented enough to be a continuation: 'Some random root level text'"),
+        id="bad-continuation",
+    ),
+    pytest.param(
+        """## [0.1.0] - 2021-04-12
+### Added
+* A single entry
+  - A nested entry
+    + A double nested entry
+  Poorly indented continuation
+""",
+        ChangelogParseError(r"Line \d+ is not indented enough to be a continuation: '  Poorly indented continuation'"),
+        id="bad-nested-continuation",
     ),
 ]
 
@@ -168,7 +178,9 @@ def test_parse_version_section(section: str, expectation: Union[VersionSection, 
     if isinstance(expectation, Exception):
         with pytest.raises(type(expectation)) as exc_info:
             _ = parse_section(section)
-        assert re.search(str(expectation), str(exc_info.value))
+        assert re.search(str(expectation), str(exc_info.value)), (
+            f"Expected error message matching {str(expectation)!r}, got {str(exc_info.value)!r}"
+        )
         return
     section = parse_section(section)
     assert section == expectation

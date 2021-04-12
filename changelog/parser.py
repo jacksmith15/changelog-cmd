@@ -13,19 +13,42 @@ class ParserState:
     changelog: Changelog = field(default_factory=Changelog)
     version: Optional[tuple[Version, Optional[str]]] = None
     change_type: Optional[str] = None
-    entry: Optional[Entry] = None
+    # entry: Optional[Entry] = None
+    entry_stack: list[tuple[Entry, int]] = field(default_factory=list)
+
+    @property
+    def root_entry(self) -> Optional[Entry]:
+        if not self.entry_stack:
+            return None
+        return self.entry_stack[0][0]
+
+    def parent_entry(self, indentation_chars: int) -> Optional[Entry]:
+        if not self.entry_stack or indentation_chars == self.entry_stack[0][1]:
+            # Top level entry
+            return None
+        if indentation_chars > self.entry_stack[-1][1]:
+            # If its more indented than the previous entry, its a child of that entry
+            return self.entry_stack[-1][0]
+        # Remove more nested items from the stack
+        while indentation_chars < self.entry_stack[-1][1]:
+            self.entry_stack.pop(-1)
+        if indentation_chars != self.entry_stack[-1][1]:
+            raise ChangelogParseError("Bad indentation")
+        self.entry_stack.pop(-1)
+        return self.entry_stack[-1][0]
 
     def flush(self):
-        if self.version and self.change_type and self.entry:
+        if self.version and self.change_type and self.root_entry:
             version, timestamp = self.version
             self.changelog.versions.setdefault(
                 version, VersionSection(entries={}, timestamp=timestamp)
-            ).entries.setdefault(self.change_type, []).append(self.entry)
-            self.entry = None
+            ).entries.setdefault(self.change_type, []).append(self.root_entry)
+            self.entry_stack = []
 
 
-def loads(text: str, indent: int = 2) -> Changelog:
+def loads(text: str, tab_indent: int = 2) -> Changelog:
     parser_state = ParserState()
+    # text = text.replace("\t", tab_indent * " ")
     for index, line in enumerate(text.splitlines()):
         if (version_match := re.match(r"^## \[(?P<version>.+)\]( +- +(?P<date>\d+\-\d+\-\d+))?", line)) :
             # New versions are level-two headings, and must be linked.
@@ -50,20 +73,28 @@ def loads(text: str, indent: int = 2) -> Changelog:
             parser_state.flush()
             parser_state.change_type = change_type_match.groupdict()["change_type"]
             continue
-        if (entry_start_match := re.match(r"^(\*|\+|-) (?P<entry_start>.+)", line)) :
-            # New top-level entry
-            parser_state.flush()
-            parser_state.entry = Entry(text=entry_start_match.groupdict()["entry_start"])
+        if (entry_start_match := re.match(r"^ *(\*|\+|-) (?P<sub_entry_start>.+)", line)) :
+            # New entry start
+            indentation_chars = len(line) - len(line.lstrip())
+            entry = Entry(text=entry_start_match.groupdict()["sub_entry_start"])
+            try:
+                parent_entry = parser_state.parent_entry(indentation_chars)
+            except ChangelogParseError:
+                raise ChangelogParseError(f"Bad indentation at line {index}: {line!r}")
+            if not parent_entry:
+                # Must be top-level
+                parser_state.flush()
+            else:
+                # New sub entry
+                parent_entry.sub_entries.append(entry)
+            parser_state.entry_stack.append((entry, indentation_chars))
             continue
-        if parser_state.entry and (sub_entry_start_match := re.match(r"^ +(\*|\+|-) (?P<sub_entry_start>.+)", line)):
-            # Sub-entry, grouped under a parent entry.
-            parent_entry = _get_parent_entry(index, line, parser_state.entry, indent)
-            parent_entry.sub_entries.append(Entry(text=sub_entry_start_match.groupdict()["sub_entry_start"]))
-            continue
-        if parser_state.entry and (entry_continued_match := re.match(r"^ +(?P<entry_continued>.+)", line)):
+        if parser_state.entry_stack and (entry_continued_match := re.match(r"^ *(?P<entry_continued>.+)", line)):
             # Multi-line continuation of entry text.
-            parent_entry = _get_parent_entry(index, line, parser_state.entry, indent)
-            parent_entry.text += " " + entry_continued_match.groupdict()["entry_continued"].lstrip()
+            indentation_chars = len(line) - len(line.lstrip())
+            if indentation_chars < parser_state.entry_stack[-1][1] + 2:
+                raise ChangelogParseError(f"Line {index} is not indented enough to be a continuation: {line!r}")
+            parser_state.entry_stack[-1][0].text += " " + entry_continued_match.groupdict()["entry_continued"].lstrip()
             continue
         if (link_match := re.match(r"^\[(?P<link_name>.+)\]: (?P<link_target>.+)$", line)) :
             # Links follow the format [{link_name}]: http://example.com/link/target
@@ -83,26 +114,6 @@ def loads(text: str, indent: int = 2) -> Changelog:
     except ChangelogValidationError as exc:
         raise ChangelogParseError("Changelog failed validation") from exc
     return parser_state.changelog
-
-
-def _get_parent_entry(index: int, line: str, parent_entry: Entry, indent_size: int = 2) -> Entry:
-    indentation_depth = _get_indentation_depth(index, line, indent_size)
-    if not indentation_depth:
-        raise ValueError("Cannot get parent entry for root-level entry.")
-    try:
-        for _ in range(indentation_depth - 1):
-            parent_entry = parent_entry.sub_entries[-1]
-    except IndexError:
-        raise ChangelogParseError(f"Bad indentation (too large) at line {index}: {line!r}")
-    return parent_entry
-
-
-def _get_indentation_depth(index: int, line: str, indent_size: int = 2) -> int:
-    line = line.replace("\t", " " * indent_size)
-    chars = len(line) - len(line.lstrip())
-    if chars % indent_size:
-        raise ChangelogParseError(f"Bad indentation at line {index}, must be a multiple of {indent_size}: {line!r}")
-    return chars // indent_size
 
 
 def load_from_file(path: str = "CHANGELOG.md") -> Changelog:
