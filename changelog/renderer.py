@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from changelog.model import Changelog, ChangeType, Entry, Version, VersionSection
+from changelog.model import Changelog, Entry, ReleaseTag, ReleaseSection
 
 
 def dumps(changelog: Changelog, indent: int = 2) -> str:
@@ -8,24 +8,24 @@ def dumps(changelog: Changelog, indent: int = 2) -> str:
     return "\n\n".join(
         [
             changelog.header.strip(),
-            _render_changelog_versions(changelog.versions, indent=indent),
-            _render_changelog_links(changelog.links, set(changelog.versions)),
+            _render_changelog_versions(changelog.releases, indent=indent),
+            _render_changelog_links(changelog.links, set(changelog.releases)),
         ]
     ) + "\n"
 
 
-def _render_changelog_versions(versions: dict[Version, VersionSection], indent: int = 2) -> str:
+def _render_changelog_versions(versions: dict[ReleaseTag, ReleaseSection], indent: int = 2) -> str:
     return "\n\n".join([render_changelog_version(version, section) for version, section in versions.items()])
 
 
-def render_changelog_version(version: Version, section: VersionSection, indent: int = 2) -> str:
+def render_changelog_version(version: ReleaseTag, section: ReleaseSection, indent: int = 2) -> str:
     header = f"## [{version}]"
     if section.timestamp:
         header += f" - {section.timestamp}"
     return "\n".join([header, _render_changelog_change_types(section.entries, indent=indent)])
 
 
-def _render_changelog_change_types(change_types: dict[ChangeType, list[Entry]], indent: int = 2) -> str:
+def _render_changelog_change_types(change_types: dict[str, list[Entry]], indent: int = 2) -> str:
     return "\n\n".join(
         [
             _render_changelog_change_type(change_type, entries, indent=indent)
@@ -34,7 +34,7 @@ def _render_changelog_change_types(change_types: dict[ChangeType, list[Entry]], 
     )
 
 
-def _render_changelog_change_type(change_type: ChangeType, entries: list[Entry], indent: int = 2) -> str:
+def _render_changelog_change_type(change_type: str, entries: list[Entry], indent: int = 2) -> str:
     return "\n".join(
         [f"### {change_type}", "\n".join([_render_changelog_entry(entry, indent=indent) for entry in entries])]
     )
@@ -47,13 +47,13 @@ def _render_changelog_entry(entry: Entry, indent: int = 2, _indent_level: int = 
             " " * indent * _indent_level + f"{bullet} {entry.text}",
             *[
                 _render_changelog_entry(sub_entry, indent=indent, _indent_level=_indent_level + 1)
-                for sub_entry in entry.sub_entries
+                for sub_entry in entry.children
             ],
         ]
     )
 
 
-def _render_changelog_links(links: dict[str, str], versions: set[Version]) -> str:
+def _render_changelog_links(links: dict[str, str], versions: set[ReleaseTag]) -> str:
     return "\n\n".join(
         [
             "\n".join(

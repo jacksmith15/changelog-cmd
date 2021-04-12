@@ -5,7 +5,7 @@ import pytest
 
 from changelog import loads
 from changelog.exceptions import ChangelogParseError
-from changelog.model import Entry, Version, VersionSection
+from changelog.model import Entry, ReleaseTag, ReleaseSection
 from tests.constants import DEFAULT_HEADER
 
 SECTION_PARAMS = [
@@ -14,7 +14,7 @@ SECTION_PARAMS = [
 ### Added
 * A single entry
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={"Added": [Entry("A single entry")]}
         ),
@@ -26,7 +26,7 @@ SECTION_PARAMS = [
 * A single entry split over
   multiple lines
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={"Added": [Entry("A single entry split over multiple lines")]}
         ),
@@ -39,7 +39,7 @@ SECTION_PARAMS = [
 
 * A single entry
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={"Added": [Entry("A single entry")]}
         ),
@@ -51,7 +51,7 @@ SECTION_PARAMS = [
 * Entry one
 * Entry two
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={"Added": [Entry("Entry one"), Entry("Entry two")]}
         ),
@@ -65,7 +65,7 @@ SECTION_PARAMS = [
 ### Fixed
 * A fix
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={"Added": [Entry("A new feature")], "Fixed": [Entry("A fix")]}
         ),
@@ -81,15 +81,15 @@ SECTION_PARAMS = [
   - Another child entry
 * Another entry
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={
                 "Added": [
                     Entry(
                         "A parent entry",
-                        sub_entries=[
+                        children=[
                             Entry("A child entry"),
-                            Entry("A parent and child entry", sub_entries=[Entry("A nested child entry")]),
+                            Entry("A parent and child entry", children=[Entry("A nested child entry")]),
                             Entry("Another child entry"),
                         ],
                     ),
@@ -109,15 +109,15 @@ SECTION_PARAMS = [
   * Another child entry
 * Another entry
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={
                 "Added": [
                     Entry(
                         "A parent entry",
-                        sub_entries=[
+                        children=[
                             Entry("A child entry"),
-                            Entry("A parent and child entry", sub_entries=[Entry("A nested child entry")]),
+                            Entry("A parent and child entry", children=[Entry("A nested child entry")]),
                             Entry("Another child entry"),
                         ],
                     ),
@@ -133,13 +133,13 @@ SECTION_PARAMS = [
 * A parent entry
     - A more indented child entry
 """,
-        VersionSection(
+        ReleaseSection(
             timestamp="2021-04-12",
             entries={
                 "Added": [
                     Entry(
                         "A parent entry",
-                        sub_entries=[
+                        children=[
                             Entry("A more indented child entry"),
                         ],
                     ),
@@ -174,7 +174,7 @@ Some random root level text
     "section,expectation",
     SECTION_PARAMS,
 )
-def test_parse_version_section(section: str, expectation: Union[VersionSection, Exception]):
+def test_parse_version_section(section: str, expectation: Union[ReleaseSection, Exception]):
     if isinstance(expectation, Exception):
         with pytest.raises(type(expectation)) as exc_info:
             _ = parse_section(section)
@@ -202,4 +202,4 @@ def parse_section(section: str):
     ]
     changelog_text = "\n".join(parts)
     changelog = loads(changelog_text)
-    return changelog.versions[Version(version)]
+    return changelog.releases[ReleaseTag(version)]

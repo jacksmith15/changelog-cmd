@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 | Security   | In case of vulnerabilities        | patch        |
 
 * Breaking changes are indicated by the string `BREAKING` in an entry's body.
-* Version links follow the pattern `https://github.com/jacksmith15/changelog/compare/{previous_version}..{next_version}`
+* Version links follow the pattern `https://github.com/jacksmith15/changelog/compare/{previous_tag}..{next_tag}`
 
 ## [Unreleased]
 ### Added

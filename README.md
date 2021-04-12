@@ -26,5 +26,3 @@ poetry run inv verify
     + Breaking change token
     + Change types (and their semver meaning)
     + Tag link format string
-- Change terminology from version to release tag
-- Tests!

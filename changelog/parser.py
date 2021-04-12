@@ -5,13 +5,13 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from changelog.exceptions import ChangelogParseError, ChangelogValidationError
-from changelog.model import Changelog, Entry, Version, VersionSection
+from changelog.model import Changelog, Entry, ReleaseTag, ReleaseSection
 
 
 @dataclass
 class ParserState:
     changelog: Changelog = field(default_factory=Changelog)
-    version: Optional[tuple[Version, Optional[str]]] = None
+    release_tag: Optional[tuple[ReleaseTag, Optional[str]]] = None
     change_type: Optional[str] = None
     entry_stack: list[tuple[Entry, int]] = field(default_factory=list)
 
@@ -36,11 +36,11 @@ class ParserState:
         self.entry_stack.pop(-1)
         return self.entry_stack[-1][0]
 
-    def flush(self):
-        if self.version and self.change_type and self.root_entry:
-            version, timestamp = self.version
-            self.changelog.versions.setdefault(
-                version, VersionSection(entries={}, timestamp=timestamp)
+    def flush(self) -> None:
+        if self.release_tag and self.change_type and self.root_entry:
+            tag, timestamp = self.release_tag
+            self.changelog.releases.setdefault(
+                tag, ReleaseSection(entries={}, timestamp=timestamp)
             ).entries.setdefault(self.change_type, []).append(self.root_entry)
             self.entry_stack = []
 
@@ -49,18 +49,18 @@ def loads(text: str, tab_indent: int = 2) -> Changelog:
     parser_state = ParserState()
     text = text.replace("\t", tab_indent * " ")
     for index, line in enumerate(text.splitlines()):
-        if (version_match := re.match(r"^## \[(?P<version>.+)\]( +- +(?P<date>\d+\-\d+\-\d+))?", line)) :
-            # New versions are level-two headings, and must be linked.
+        if (release_header_match := re.match(r"^## \[(?P<tag>.+)\]( +- +(?P<date>\d+\-\d+\-\d+))?", line)) :
+            # New tags are level-two headings, and must be linked.
             # They optionally include a timestamp.
             parser_state.flush()
-            match_dict = version_match.groupdict()
-            version = Version(match_dict["version"])
+            match_dict = release_header_match.groupdict()
+            tag = ReleaseTag(match_dict["tag"])
             timestamp = match_dict.get("date")
-            parser_state.version = version, timestamp
-            parser_state.changelog.versions.setdefault(version, VersionSection(entries={}, timestamp=timestamp))
+            parser_state.release_tag = tag, timestamp
+            parser_state.changelog.releases.setdefault(tag, ReleaseSection(entries={}, timestamp=timestamp))
             continue
-        if not parser_state.version:
-            # If version is not set, assume we are parsing header text
+        if not parser_state.release_tag:
+            # If release_tag is not set, assume we are parsing header text
             parser_state.changelog.header += f"\n{line}"
             continue
         if (
@@ -85,7 +85,7 @@ def loads(text: str, tab_indent: int = 2) -> Changelog:
                 parser_state.flush()
             else:
                 # New sub entry
-                parent_entry.sub_entries.append(entry)
+                parent_entry.children.append(entry)
             parser_state.entry_stack.append((entry, indentation_chars))
             continue
         if parser_state.entry_stack and (entry_continued_match := re.match(r"^ *(?P<entry_continued>.+)", line)):

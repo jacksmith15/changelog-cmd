@@ -9,7 +9,7 @@ from typer.testing import CliRunner
 
 from changelog import __version__, load_from_file
 from changelog.__main__ import app
-from changelog.model import Entry, Version
+from changelog.model import Entry, ReleaseTag
 
 
 runner = CliRunner()
@@ -29,7 +29,7 @@ def override_env(key: str, value: str) -> Iterator[None]:
 
 
 @pytest.fixture()
-def changelog_path() -> str:
+def changelog_path() -> Iterator[str]:
     target = "tests/cli/outputs/CHANGELOG.md"
     copyfile("tests/changelogs/initial_changelog.md", target)
     try:
@@ -80,8 +80,8 @@ def test_it_adds_an_entry(changelog_path: str, path_mode: str):
             result = runner.invoke(app, ["entry", "added", "-m", "A new feature", "-m", "More details"])
     assert result.exit_code == 0
     changelog = load_from_file(changelog_path)
-    assert changelog.versions[Version("Unreleased")].entries["Added"][-1] == Entry(
-        "A new feature", sub_entries=[Entry("More details")]
+    assert changelog.releases[ReleaseTag("Unreleased")].entries["Added"][-1] == Entry(
+        "A new feature", children=[Entry("More details")]
     )
 
 
@@ -89,22 +89,22 @@ def test_it_cuts_first_release_with_default_options(changelog_path: str):
     result = runner.invoke(app, ["--path", changelog_path, "release"])
     assert result.exit_code == 0
     changelog = load_from_file(changelog_path)
-    assert list(changelog.versions) == ["Unreleased", "0.1.0"]
+    assert list(changelog.releases) == ["Unreleased", "0.1.0"]
     assert {"Unreleased", "0.1.0"} <= set(changelog.links)
-    assert not changelog.versions[Version("Unreleased")].entries
-    assert changelog.versions[Version("0.1.0")].entries["Added"] == [Entry("Project started :)")]
-    assert changelog.versions[Version("0.1.0")].timestamp == date.today().isoformat()
+    assert not changelog.releases[ReleaseTag("Unreleased")].entries
+    assert changelog.releases[ReleaseTag("0.1.0")].entries["Added"] == [Entry("Project started :)")]
+    assert changelog.releases[ReleaseTag("0.1.0")].timestamp == date.today().isoformat()
 
 
 def test_it_cuts_a_release_with_a_specific_tag(changelog_path: str):
     result = runner.invoke(app, ["--path", changelog_path, "release", "--tag", "1.0.0"])
     assert result.exit_code == 0
     changelog = load_from_file(changelog_path)
-    assert list(changelog.versions) == ["Unreleased", "1.0.0"]
+    assert list(changelog.releases) == ["Unreleased", "1.0.0"]
     assert {"Unreleased", "1.0.0"} <= set(changelog.links)
-    assert not changelog.versions[Version("Unreleased")].entries
-    assert changelog.versions[Version("1.0.0")].entries["Added"] == [Entry("Project started :)")]
-    assert changelog.versions[Version("1.0.0")].timestamp == date.today().isoformat()
+    assert not changelog.releases[ReleaseTag("Unreleased")].entries
+    assert changelog.releases[ReleaseTag("1.0.0")].entries["Added"] == [Entry("Project started :)")]
+    assert changelog.releases[ReleaseTag("1.0.0")].timestamp == date.today().isoformat()
 
 
 @pytest.mark.parametrize(
@@ -157,7 +157,7 @@ def test_it_cuts_a_release_with_auto_version(
                 "0.1.0": "0.2.0",
                 "1.0.0": "1.1.0",
             }[initial_version]
-    assert changelog.latest_version == expected
+    assert changelog.latest_tag == expected
 
 
 def test_it_cuts_a_release_with_specific_bump(
@@ -175,4 +175,4 @@ def test_it_cuts_a_release_with_specific_bump(
     assert not result.exit_code
     # AND the changelog has the correct latest version
     changelog = load_from_file(changelog_path)
-    assert changelog.latest_version == "1.0.0"
+    assert changelog.latest_tag == "1.0.0"

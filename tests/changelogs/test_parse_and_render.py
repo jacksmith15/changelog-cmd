@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import pytest
 
-from changelog.model import Changelog, Version, VersionSection, Entry
+from changelog.model import Changelog, ReleaseTag, ReleaseSection, Entry
 from changelog import dumps, loads, load_from_file
 from tests.constants import DEFAULT_HEADER, DEFAULT_LINKS
 
@@ -10,8 +10,8 @@ from tests.constants import DEFAULT_HEADER, DEFAULT_LINKS
 EXPECTATIONS = {
     "initial_changelog.md": Changelog(
         header=DEFAULT_HEADER,
-        versions=OrderedDict(
-            {Version("Unreleased"): VersionSection(timestamp=None, entries={"Added": [Entry("Project started :)")]})}
+        releases=OrderedDict(
+            {ReleaseTag("Unreleased"): ReleaseSection(timestamp=None, entries={"Added": [Entry("Project started :)")]})}
         ),
         links=OrderedDict(
             {
@@ -22,37 +22,37 @@ EXPECTATIONS = {
     ),
     "populated_changelog.md": Changelog(
         header=DEFAULT_HEADER,
-        versions=OrderedDict(
+        releases=OrderedDict(
             {
-                Version("Unreleased"): VersionSection(
+                ReleaseTag("Unreleased"): ReleaseSection(
                     timestamp=None,
                     entries={
-                        "Added": [Entry("A third feature", sub_entries=[Entry("Some notes"), Entry("Even more notes")])]
+                        "Added": [Entry("A third feature", children=[Entry("Some notes"), Entry("Even more notes")])]
                     },
                 ),
-                Version("0.2.0"): VersionSection(
+                ReleaseTag("0.2.0"): ReleaseSection(
                     timestamp="2021-04-12",
                     entries={
                         "Added": [
                             Entry(
                                 "A second feature",
-                                sub_entries=[
+                                children=[
                                     Entry("Some notes"),
-                                    Entry("Even more notes", sub_entries=[Entry("Nested notes")]),
+                                    Entry("Even more notes", children=[Entry("Nested notes")]),
                                 ],
                             )
                         ],
                         "Fixed": [Entry("Corrected behaviour")],
                     },
                 ),
-                Version("0.1.0"): VersionSection(
+                ReleaseTag("0.1.0"): ReleaseSection(
                     timestamp="2021-04-12",
                     entries={
                         "Added": [
                             Entry("Project started :)"),
                             Entry(
                                 "The first feature",
-                                sub_entries=[
+                                children=[
                                     Entry("Some notes"),
                                     Entry("Some more notes"),
                                 ],
