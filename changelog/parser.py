@@ -47,7 +47,7 @@ class ParserState:
 
 def loads(text: str, tab_indent: int = 2) -> Changelog:
     parser_state = ParserState()
-    # text = text.replace("\t", tab_indent * " ")
+    text = text.replace("\t", tab_indent * " ")
     for index, line in enumerate(text.splitlines()):
         if (version_match := re.match(r"^## \[(?P<version>.+)\]( +- +(?P<date>\d+\-\d+\-\d+))?", line)) :
             # New versions are level-two headings, and must be linked.
