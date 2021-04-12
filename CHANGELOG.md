@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 | Added      | New features                      | minor        |
 | Changed    | Changes in existing functionality | minor        |
 | Deprecated | Soon-to-be removed features       | minor        |
-| Removed    | Removes features                  | major        |
+| Removed    | Removes features                  | minor        |
 | Fixed      | For bug fixes                     | patch        |
 | Security   | In case of vulnerabilities        | patch        |
 

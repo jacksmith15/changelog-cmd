@@ -108,13 +108,13 @@ def entry(
     change_type: str = typer.Argument(...),
     message: list[str] = typer.Option(..., "--message", "-m", help="Message describing changelog entry."),
     breaking: bool = typer.Option(False, "--breaking", "-b", help="Mark this change as a breaking change."),
-    tag: str = typer.Option(
-        "auto", "--tag", "-t", help="Specify the release tag for this entry. Will add to unreleased tag by default."
+    tag: Optional[str] = typer.Option(
+        None, "--tag", "-t", help="Specify the release tag for this entry. Will add to unreleased tag by default."
     ),
 ):
     """Add a new entry to the changelog."""
     changelog = load_from_file(path=app.state["path"])
-    changelog.add_entry(cast(ChangeType, change_type.title()), *message, breaking=breaking)
+    changelog.add_entry(cast(ChangeType, change_type.title()), *message, breaking=breaking, tag=tag)
     dump_to_file(changelog, path=app.state["path"])
 
 

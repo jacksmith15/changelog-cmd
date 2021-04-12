@@ -57,11 +57,12 @@ class Changelog:
         if missing_version_links:
             raise ChangelogValidationError(f"The following versions are missing links: {missing_version_links}")
 
-    def add_entry(self, change_type: ChangeType, *items: str, breaking: bool = False) -> None:
+    def add_entry(self, change_type: ChangeType, *items: str, breaking: bool = False, tag: str = None) -> None:
         """Add an entry to the changelog, under unreleased."""
+        tag = Version(tag) if tag else _UNRELEASED
         assert change_type in ChangeType.__args__  # type: ignore
         prefix = f"{_BREAKING_CHANGE_INDICATOR} " if breaking else ""
-        self.versions.setdefault(_UNRELEASED, VersionSection(entries={}, timestamp=None)).entries.setdefault(
+        self.versions.setdefault(tag, VersionSection(entries={}, timestamp=None)).entries.setdefault(
             change_type, []
         ).append(Entry(text=prefix + items[0], sub_entries=[Entry(text=item) for item in items[1:]]))
 
