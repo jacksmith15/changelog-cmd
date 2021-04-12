@@ -11,7 +11,7 @@ def dumps(changelog: Changelog, indent: int = 2) -> str:
             _render_changelog_versions(changelog.versions, indent=indent),
             _render_changelog_links(changelog.links, set(changelog.versions)),
         ]
-    )
+    ) + "\n"
 
 
 def _render_changelog_versions(versions: dict[Version, VersionSection], indent: int = 2) -> str:

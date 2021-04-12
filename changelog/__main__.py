@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, cast
 
 import typer
 
@@ -73,7 +73,7 @@ def entry(
 ):
     """Add a new entry to the changelog."""
     changelog = load_from_file(path=path)
-    changelog.add_entry(change_type.title(), *message, breaking=breaking)
+    changelog.add_entry(cast(ChangeType, change_type.title()), *message, breaking=breaking)
     dump_to_file(changelog, path=path)
 
 
