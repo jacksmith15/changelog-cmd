@@ -20,7 +20,6 @@ poetry run inv verify
 
 ## TODOs:
 
-- Support flexible indentation in parser
 - Initialise a new changelog
 - Support parsing config from changelog:
     + SemVer flag

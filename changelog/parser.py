@@ -13,7 +13,6 @@ class ParserState:
     changelog: Changelog = field(default_factory=Changelog)
     version: Optional[tuple[Version, Optional[str]]] = None
     change_type: Optional[str] = None
-    # entry: Optional[Entry] = None
     entry_stack: list[tuple[Entry, int]] = field(default_factory=list)
 
     @property
