@@ -7,8 +7,8 @@ from datetime import date
 from enum import Enum
 from typing import Literal, Optional, cast
 
-from changelog.constants import _BREAKING_CHANGE_INDICATOR
 from changelog.exceptions import ChangelogError, ChangelogValidationError
+from changelog.utils import reverse_format
 
 ChangeType = Literal["Security", "Deprecated", "Added", "Changed", "Removed", "Fixed"]
 
@@ -51,6 +51,16 @@ class Changelog:
     releases: OrderedDict[ReleaseTag, ReleaseSection] = field(default_factory=OrderedDict)
     links: OrderedDict[str, str] = field(default_factory=OrderedDict)
 
+    @property
+    def release_link_format(self) -> str:
+        if "_release_link_format" not in self.links:
+            raise ChangelogError("No release link format specified.")
+        return self.links["_release_link_format"]
+
+    @property
+    def breaking_change_tag(self) -> str:
+        return self.links.get("_breaking_change_tag", "BREAKING")
+
     def validate(self):
         """Validate the changelog."""
         missing_tag_links = set(self.releases) - set(self.links)
@@ -61,7 +71,7 @@ class Changelog:
         """Add an entry to the changelog, under unreleased."""
         tag = ReleaseTag(tag) if tag else _UNRELEASED
         assert change_type in ChangeType.__args__  # type: ignore
-        prefix = f"{_BREAKING_CHANGE_INDICATOR} " if breaking else ""
+        prefix = f"{self.breaking_change_tag} " if breaking else ""
         self.releases.setdefault(tag, ReleaseSection(entries={}, timestamp=None)).entries.setdefault(
             change_type, []
         ).append(Entry(text=prefix + items[0], children=[Entry(text=item) for item in items[1:]]))
@@ -78,13 +88,14 @@ class Changelog:
         if force:
             return self.latest_tag.bump_semver(force)
         unreleased = self.releases[_UNRELEASED].entries
-        if _BREAKING_CHANGE_INDICATOR in str(unreleased) and self.latest_tag.semver[0] > 0:
+        if self.breaking_change_tag in str(unreleased) and self.latest_tag.semver[0] > 0:
             return self.latest_tag.bump_semver(Bump.MAJOR)
         if set(unreleased) - {"Fixed"}:
             return self.latest_tag.bump_semver(Bump.MINOR)
         return self.latest_tag.bump_semver(Bump.PATCH)
 
     def cut_release(self, force: Bump = None, tag: str = None) -> tuple[ReleaseTag, ReleaseSection]:
+        previous_tag = self.latest_tag
         next_tag = ReleaseTag(tag) if tag else self.next_tag(force=force)
         # Move entries from unreleased to the new tag:
         self.releases[next_tag] = self.releases[_UNRELEASED]
@@ -94,12 +105,17 @@ class Changelog:
         self.releases.move_to_end(next_tag, last=False)
         self.releases.move_to_end(_UNRELEASED, last=False)
         # Update tag links
-        self.links[next_tag] = self.links[_UNRELEASED].replace("HEAD", next_tag)
-        self.links[_UNRELEASED] = self.links[_UNRELEASED].replace(self.latest_tag or "initial", next_tag)
+        self.links[next_tag] = self.release_link_format.format(previous_tag=previous_tag or "initial", next_tag=next_tag)
+        self.links[_UNRELEASED] = self.release_link_format.format(previous_tag=next_tag, next_tag=self._unreleased_link_tag)
         # Reorder links
         self.links.move_to_end(next_tag, last=False)
         self.links.move_to_end(_UNRELEASED, last=False)
         return next_tag, self.releases[next_tag]
+
+    @property
+    def _unreleased_link_tag(self) -> str:
+        unreleased_link_tags: dict[str, str] = reverse_format(self.links[_UNRELEASED], self.release_link_format, {})
+        return unreleased_link_tags.get("next_tag", "HEAD")
 
 
 @dataclass

@@ -70,7 +70,7 @@ def test_it_formats_a_changelog(changelog_path: str):
 
 
 @pytest.mark.parametrize("path_mode", ["option", "environment"])
-def test_it_adds_an_entry(changelog_path: str, path_mode: str):
+def test_it_adds_an_entry_to_the_specified_changelog(changelog_path: str, path_mode: str):
     if path_mode == "option":
         result = runner.invoke(
             app, ["--path", changelog_path, "entry", "added", "-m", "A new feature", "-m", "More details"]
@@ -83,6 +83,14 @@ def test_it_adds_an_entry(changelog_path: str, path_mode: str):
     assert changelog.releases[ReleaseTag("Unreleased")].entries["Added"][-1] == Entry(
         "A new feature", children=[Entry("More details")]
     )
+
+
+def test_it_adds_a_breaking_change(changelog_path: str):
+    result = runner.invoke(app, ["--path", changelog_path, "entry", "changed", "-m", "Changed something", "--breaking"])
+    assert result.exit_code == 0
+    changelog = load_from_file(changelog_path)
+    entry = changelog.releases[ReleaseTag("Unreleased")].entries["Changed"][-1]
+    assert entry.text == "BREAKING Changed something"
 
 
 def test_it_cuts_first_release_with_default_options(changelog_path: str):

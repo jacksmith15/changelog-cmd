@@ -14,12 +14,10 @@ The format is based on [Keep a Changelog] and this project adheres to
 | Removed    | Removes features                  | major        |
 | Fixed      | For bug fixes                     | patch        |
 | Security   | In case of vulnerabilities        | patch        |
-
-* Breaking changes are indicated by the string `BREAKING` in an entry's body.
-* Version links follow the pattern `https://github.com/jacksmith15/changelog/compare/{previous_tag}..{next_tag}`
 """
 
 DEFAULT_LINKS: dict[str, str] = {
     "Keep a Changelog": "http://keepachangelog.com/en/1.0.0/",
     "Semantic Versioning": "http://semver.org/spec/v2.0.0.html",
+    "_release_link_format": "https://github.com/jacksmith15/changelog/compare/{previous_tag}..{next_tag}",
 }
