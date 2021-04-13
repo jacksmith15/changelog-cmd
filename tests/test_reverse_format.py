@@ -3,6 +3,10 @@ import pytest
 from changelog.utils import reverse_format
 
 
+def test_it_can_reverse_on_no_fields():
+    assert reverse_format("Hello, world", "Hello, world") == {}
+
+
 def test_it_can_reverse_single_field():
     assert reverse_format("Hello, world", "Hello, {name}") == {"name": "world"}
 

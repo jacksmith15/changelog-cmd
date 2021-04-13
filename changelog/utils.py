@@ -55,4 +55,4 @@ def format_spec_to_regex(format_spec: str) -> re.Pattern:
 
 def _format_spec_field_names(format_spec: str) -> set[str]:
     """Extract field names from a format spec."""
-    return {name or "" for _, name, __, ___ in Formatter().parse(format_spec)}
+    return {name for _, name, __, ___ in Formatter().parse(format_spec) if name is not None}
