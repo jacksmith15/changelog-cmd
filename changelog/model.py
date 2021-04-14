@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import re
 from collections import OrderedDict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, Field, field
 from datetime import date
 from enum import Enum
 from typing import Literal, Optional, cast
-
-from changelog.exceptions import ChangelogError, ChangelogValidationError
+from urllib.parse import quote_plus, unquote_plus
+from changelog.exceptions import ChangelogError, ChangelogMissingConfigError, ChangelogValidationError
 from changelog.utils import reverse_format
 
 ChangeType = Literal["Security", "Deprecated", "Added", "Changed", "Removed", "Fixed"]
@@ -46,23 +46,41 @@ _UNRELEASED = ReleaseTag("Unreleased")
 
 
 @dataclass
+class ChangelogConfig:
+    release_link_format: Optional[str] = None
+    breaking_change_token: str = field(default="BREAKING", metadata={"parse": unquote_plus, "render": quote_plus})
+
+    @property
+    def fields(self) -> dict[str, Field]:
+        return self.__dataclass_fields__  # type: ignore[attr-defined]
+
+    def get(self, key: str, default: str = None) -> str:
+        if key not in self.fields:
+            raise ChangelogError(f"{key} is not a valid config option.")
+        value = getattr(self, key)
+        if not value:
+            if default:
+                return default
+            raise ChangelogMissingConfigError(f"No config option for {key!r}", field=key)
+        return value
+
+    def set(self, key: str, value: str) -> None:
+        if key not in self.fields:
+            raise ChangelogError(f"{key} is not a valid config option.")
+        setattr(self, key, value)
+
+
+@dataclass
 class Changelog:
     header: str = ""
+    config: ChangelogConfig = field(default_factory=ChangelogConfig)
     releases: OrderedDict[ReleaseTag, ReleaseSection] = field(default_factory=OrderedDict)
     links: OrderedDict[str, str] = field(default_factory=OrderedDict)
 
-    @property
-    def release_link_format(self) -> str:
-        if "_release_link_format" not in self.links:
-            raise ChangelogError("No release link format specified.")
-        return self.links["_release_link_format"]
-
-    @property
-    def breaking_change_tag(self) -> str:
-        return self.links.get("_breaking_change_tag", "BREAKING")
-
     def validate(self):
         """Validate the changelog."""
+        if not self.releases:
+            raise ChangelogValidationError("Changelog contains no releases!")
         missing_tag_links = set(self.releases) - set(self.links)
         if missing_tag_links:
             raise ChangelogValidationError(f"The following releases are missing links: {missing_tag_links}")
@@ -71,7 +89,7 @@ class Changelog:
         """Add an entry to the changelog, under unreleased."""
         tag = ReleaseTag(tag) if tag else _UNRELEASED
         assert change_type in ChangeType.__args__  # type: ignore
-        prefix = f"{self.breaking_change_tag} " if breaking else ""
+        prefix = f"{self.config.get('breaking_change_token')} " if breaking else ""
         self.releases.setdefault(tag, ReleaseSection(entries={}, timestamp=None)).entries.setdefault(
             change_type, []
         ).append(Entry(text=prefix + items[0], children=[Entry(text=item) for item in items[1:]]))
@@ -88,7 +106,7 @@ class Changelog:
         if force:
             return self.latest_tag.bump_semver(force)
         unreleased = self.releases[_UNRELEASED].entries
-        if self.breaking_change_tag in str(unreleased) and self.latest_tag.semver[0] > 0:
+        if self.config.get("breaking_change_token", "BREAKING") in str(unreleased) and self.latest_tag.semver[0] > 0:
             return self.latest_tag.bump_semver(Bump.MAJOR)
         if set(unreleased) - {"Fixed"}:
             return self.latest_tag.bump_semver(Bump.MINOR)
@@ -105,17 +123,18 @@ class Changelog:
         self.releases.move_to_end(next_tag, last=False)
         self.releases.move_to_end(_UNRELEASED, last=False)
         # Update tag links
-        self.links[next_tag] = self.release_link_format.format(previous_tag=previous_tag or "initial", next_tag=next_tag)
-        self.links[_UNRELEASED] = self.release_link_format.format(previous_tag=next_tag, next_tag=self._unreleased_link_tag)
+        link_spec = self.config.get("release_link_format")
+        self.links[next_tag] = link_spec.format(previous_tag=previous_tag or "initial", next_tag=next_tag)
+        self.links[_UNRELEASED] = link_spec.format(
+            previous_tag=next_tag,
+            next_tag=reverse_format(self.links[_UNRELEASED], link_spec, cast(dict[str, str], {})).get(
+                "next_tag", "HEAD"
+            ),
+        )
         # Reorder links
         self.links.move_to_end(next_tag, last=False)
         self.links.move_to_end(_UNRELEASED, last=False)
         return next_tag, self.releases[next_tag]
-
-    @property
-    def _unreleased_link_tag(self) -> str:
-        unreleased_link_tags: dict[str, str] = reverse_format(self.links[_UNRELEASED], self.release_link_format, {})
-        return unreleased_link_tags.get("next_tag", "HEAD")
 
 
 @dataclass

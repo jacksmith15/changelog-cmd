@@ -168,6 +168,16 @@ Some random root level text
         ChangelogParseError(r"Line \d+ is not indented enough to be a continuation: '  Poorly indented continuation'"),
         id="bad-nested-continuation",
     ),
+    pytest.param(
+        """## [0.1.0] - 2021-04-12
+### Added
+* A single entry
+  - A nested entry
+ * Unclear indentation
+""",
+        ChangelogParseError(r"Bad indentation at line \d+: ' \* Unclear indentation'"),
+        id="bad-indentation",
+    ),
 ]
 
 @pytest.mark.parametrize(

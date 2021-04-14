@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-from changelog.exceptions import ChangelogParseError, ChangelogValidationError
+from changelog.exceptions import ChangelogParseError
 from changelog.model import Changelog, Entry, ReleaseTag, ReleaseSection
 
 
@@ -99,7 +99,16 @@ def loads(text: str, tab_indent: int = 2) -> Changelog:
             # Links follow the format [{link_name}]: http://example.com/link/target
             parser_state.flush()
             match_dict = link_match.groupdict()
-            parser_state.changelog.links[match_dict["link_name"]] = match_dict["link_target"]
+            link_name = match_dict["link_name"]
+            link_target = match_dict["link_target"]
+            if link_name.startswith("_") and link_name[1:] in parser_state.changelog.config.fields:
+                # Check if the link is actually a config field in disguise
+                field_name = link_name[1:]
+                config = parser_state.changelog.config
+                field_parser = config.fields[field_name].metadata.get("parse", lambda _: _)
+                setattr(config, link_name[1:], field_parser(link_target))
+                continue
+            parser_state.changelog.links[link_name] = link_target
             continue
         if not line.strip() or "nothing here" in line.lower():
             # Blank lines terminate the previous entry, but are otherwise ignored.
@@ -108,10 +117,7 @@ def loads(text: str, tab_indent: int = 2) -> Changelog:
         raise ChangelogParseError(f"Invalid changelog at line {index}: {line!r}")
     parser_state.flush()
     parser_state.changelog.header = parser_state.changelog.header.lstrip()
-    try:
-        parser_state.changelog.validate()
-    except ChangelogValidationError as exc:
-        raise ChangelogParseError("Changelog failed validation") from exc
+    parser_state.changelog.validate()
     return parser_state.changelog
 
 

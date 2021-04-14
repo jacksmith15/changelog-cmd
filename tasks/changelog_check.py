@@ -12,6 +12,6 @@ def changelog_check(ctx):
     """
     print_header("RUNNING CHANGELOG VALIDATOR")
 
-    ctx.run("python changelog validate", pty=True)
+    ctx.run("changelog validate", pty=True)
     # changelog doesn't give positive output
     cprint("✔ No issues found.", "green")
