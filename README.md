@@ -8,6 +8,23 @@ TODO
 
 ## Usage
 
+### Starting a changelog
+
+Create a changelog by running
+
+```shell
+changelog init --release-link-format=RELEASE_LINK_FORMAT
+```
+
+Where the `--release-link-format` option specifies how to generate links for a given release, and is given using a Python string format specifier. Using GitHub as an example, this format specifier might be:
+
+- `https://github.com/user/repo/tree/{tag}` - the source code at this release
+- `https://github.com/user/repo/compare/{previous_tag}...{tag}` - a comparison of this release with the one before
+
+Above you see the two variables available for substitution:
+- `tag` is the tag of the release
+- `previous_tag` is the tag of the previous release
+
 ### Finding the changelog
 
 By default, `changelog` looks for a changelog called `CHANGELOG.md` in the current directory. You can override this by passing a command-line option:

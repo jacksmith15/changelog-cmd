@@ -114,27 +114,27 @@ class Changelog:
 
     def cut_release(self, force: Bump = None, tag: str = None) -> tuple[ReleaseTag, ReleaseSection]:
         previous_tag = self.latest_tag
-        next_tag = ReleaseTag(tag) if tag else self.next_tag(force=force)
+        release_tag = ReleaseTag(tag) if tag else self.next_tag(force=force)
         # Move entries from unreleased to the new tag:
-        self.releases[next_tag] = self.releases[_UNRELEASED]
-        self.releases[next_tag].timestamp = date.today().isoformat()
+        self.releases[release_tag] = self.releases[_UNRELEASED]
+        self.releases[release_tag].timestamp = date.today().isoformat()
         self.releases[_UNRELEASED] = ReleaseSection(entries={}, timestamp=None)
         # Reorder releases:
-        self.releases.move_to_end(next_tag, last=False)
+        self.releases.move_to_end(release_tag, last=False)
         self.releases.move_to_end(_UNRELEASED, last=False)
         # Update tag links
         link_spec = self.config.get("release_link_format")
-        self.links[next_tag] = link_spec.format(previous_tag=previous_tag or "initial", next_tag=next_tag)
+        self.links[release_tag] = link_spec.format(previous_tag=previous_tag or "initial", tag=release_tag)
         self.links[_UNRELEASED] = link_spec.format(
-            previous_tag=next_tag,
-            next_tag=reverse_format(self.links[_UNRELEASED], link_spec, cast(dict[str, str], {})).get(
-                "next_tag", "HEAD"
+            previous_tag=release_tag,
+            tag=reverse_format(self.links[_UNRELEASED], link_spec, cast(dict[str, str], {})).get(
+                "tag", "HEAD"
             ),
         )
         # Reorder links
-        self.links.move_to_end(next_tag, last=False)
+        self.links.move_to_end(release_tag, last=False)
         self.links.move_to_end(_UNRELEASED, last=False)
-        return next_tag, self.releases[next_tag]
+        return release_tag, self.releases[release_tag]
 
 
 @dataclass

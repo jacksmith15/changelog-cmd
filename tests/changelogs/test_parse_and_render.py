@@ -10,7 +10,7 @@ from tests.constants import DEFAULT_HEADER, DEFAULT_LINKS
 EXPECTATIONS = {
     "initial_changelog.md": Changelog(
         header=DEFAULT_HEADER,
-        config=ChangelogConfig(release_link_format="https://github.com/jacksmith15/changelog/compare/{previous_tag}..{next_tag}"),
+        config=ChangelogConfig(release_link_format="https://github.com/jacksmith15/changelog/compare/{previous_tag}..{tag}"),
         releases=OrderedDict(
             {ReleaseTag("Unreleased"): ReleaseSection(timestamp=None, entries={"Added": [Entry("Project started :)")]})}
         ),
@@ -23,7 +23,7 @@ EXPECTATIONS = {
     ),
     "populated_changelog.md": Changelog(
         header=DEFAULT_HEADER,
-        config=ChangelogConfig(release_link_format="https://github.com/jacksmith15/changelog/compare/{previous_tag}..{next_tag}"),
+        config=ChangelogConfig(release_link_format="https://github.com/jacksmith15/changelog/compare/{previous_tag}..{tag}"),
         releases=OrderedDict(
             {
                 ReleaseTag("Unreleased"): ReleaseSection(

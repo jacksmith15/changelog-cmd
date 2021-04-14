@@ -1,4 +1,5 @@
 import os
+import traceback
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date
@@ -16,9 +17,16 @@ runner = CliRunner()
 
 
 def assert_exit_code(result: Result, exit_code: int = 0) -> None:
-    assert result.exit_code == exit_code, f"""Expected exit code {exit_code}, got {result.exit_code}
+    exception_message = None
+    if result.exception:
+        exception_message = "\n".join(
+            traceback.format_exception(type(result.exception), result.exception, result.exception.__traceback__)
+        )
+    assert (
+        result.exit_code == exit_code
+    ), f"""Expected exit code {exit_code}, got {result.exit_code}
 
-{result.output or repr(result.exception)}
+{result.output or exception_message}
 
 """
 
@@ -122,14 +130,20 @@ def test_it_adds_a_breaking_change(changelog_path: str):
 def test_it_can_configure_breaking_change_token(changelog_path: str):
     # GIVEN the breaking change token is changed
     new_token = "**BREAKING CHANGE**"
-    assert_exit_code(runner.invoke(app, ["--path", changelog_path, "config", "set", "--field", "breaking_change_token", "--value", new_token]))
+    assert_exit_code(
+        runner.invoke(
+            app, ["--path", changelog_path, "config", "set", "--field", "breaking_change_token", "--value", new_token]
+        )
+    )
     # WHEN I retrieve the breaking change token
     result = runner.invoke(app, ["--path", changelog_path, "config", "get", "--field", "breaking_change_token"])
     assert_exit_code(result)
     # THEN the new token is retrieved
     assert result.output.strip() == new_token
     # AND WHEN I add a breaking change
-    assert_exit_code(runner.invoke(app, ["--path", changelog_path, "entry", "added", "-m", "A new feature", "--breaking"]))
+    assert_exit_code(
+        runner.invoke(app, ["--path", changelog_path, "entry", "added", "-m", "A new feature", "--breaking"])
+    )
     # THEN the new token is used
     changelog = load_from_file(changelog_path)
     assert changelog.releases[ReleaseTag("Unreleased")].entries["Added"][-1].text.startswith(new_token)
@@ -185,9 +199,14 @@ def test_it_cuts_a_release_with_auto_version(
     # GIVEN the previous release is `initial_version`
     assert_exit_code(runner.invoke(app, ["--path", changelog_path, "release", "--tag", initial_version]), 0)
     # AND the unreleased section contains an entry
-    assert_exit_code(runner.invoke(
-        app, ["--path", changelog_path, "entry", change_type, "--message", "Some stuff"] + (["--breaking"] if breaking_change else [])
-    ), 0)
+    assert_exit_code(
+        runner.invoke(
+            app,
+            ["--path", changelog_path, "entry", change_type, "--message", "Some stuff"]
+            + (["--breaking"] if breaking_change else []),
+        ),
+        0,
+    )
     # WHEN the release command is run
     result = runner.invoke(app, ["--path", changelog_path, "release"])
     # THEN the command exits successfully
@@ -216,9 +235,7 @@ def test_it_cuts_a_release_with_specific_bump(
     # GIVEN the previous release is 0.1.0
     assert_exit_code(runner.invoke(app, ["--path", changelog_path, "release", "--tag", "0.1.0"]), 0)
     # AND the unreleased section contains a new feature
-    assert_exit_code(runner.invoke(
-        app, ["--path", changelog_path, "entry", "added", "--message", "Some stuff"]
-    ), 0)
+    assert_exit_code(runner.invoke(app, ["--path", changelog_path, "entry", "added", "--message", "Some stuff"]), 0)
     # WHEN the release command is run specifying a major version bump
     result = runner.invoke(app, ["--path", changelog_path, "release", "--bump", "major"])
     # THEN the command exits successfully
@@ -239,7 +256,10 @@ def test_it_fails_to_cut_release_without_link(changelog_path: str):
     # THEN the command fails
     assert_exit_code(result, 1)
     # AND the output explains how to resolve
-    assert result.output.strip() == f"""ERROR: Could not create release due to missing config: 'release_link_format'.
+    assert (
+        result.output.strip()
+        == f"""ERROR: Could not create release due to missing config: 'release_link_format'.
 
 Run the following before cutting a release:
     changelog --path {changelog_path} config set --field release_link_format --value VALUE"""
+    )

@@ -45,5 +45,5 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
-[_release_link_format]: https://github.com/jacksmith15/changelog/compare/{previous_tag}..{next_tag}
+[_release_link_format]: https://github.com/jacksmith15/changelog/compare/{previous_tag}..{tag}
 [_breaking_change_token]: BREAKING

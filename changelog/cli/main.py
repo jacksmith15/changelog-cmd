@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 from typing import Optional, cast
 
 import typer
@@ -6,6 +7,7 @@ import typer
 from changelog import __version__
 from changelog.exceptions import ChangelogMissingConfigError
 from changelog.model import Bump, ChangeType
+from changelog.cli.constants import default_changelog
 from changelog.cli.state import get_changelog, save_changelog, global_options
 
 
@@ -33,7 +35,7 @@ def main(
         help="Display CLI version and exit.",
         callback=version_callback,
         is_eager=True,
-    )
+    ),
 ):
     """A tool for managing a changelog in the style of 'Keep a Changelog'.
 
@@ -41,6 +43,38 @@ def main(
     """
     if path:
         global_options()["path"] = path
+
+
+_RELEASE_LINK_DESCRIPTION = """For example:
+
+"https://github.com/user/repo/compare/{previous_tag}..{tag}"
+
+Optionally may contain the following vars for substitution:
+
+{tag},{previous_tag}
+
+"""
+
+@app.command()
+def init(
+    force: bool = typer.Option(False, help="If set, override any existing file at target location."),
+    release_link_format: str = typer.Option(
+        ...,
+        prompt=f"Please specify the format for release links. {_RELEASE_LINK_DESCRIPTION}",
+        help=f"Format string for release links. {_RELEASE_LINK_DESCRIPTION}",
+    ),
+    breaking_change_token: str = typer.Option("BREAKING", help="Token used to indicate breaking changes.")
+):
+    path = Path(global_options()["path"])
+    if not force and path.exists():
+        typer.secho(
+            f"Path {path} already exists. Aborting.",
+            fg="red",
+        )
+        raise typer.Exit(1)
+
+    save_changelog(default_changelog(release_link_format=release_link_format, breaking_change_token=breaking_change_token))
+    typer.secho(f"Changelog initialised at '{path.absolute()}'", fg="green")
 
 
 @app.command()
