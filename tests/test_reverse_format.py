@@ -32,3 +32,16 @@ def test_it_returns_default_on_no_match():
 def test_it_raises_on_invalid_names(invalid_name: str):
     with pytest.raises(ValueError):
         reverse_format("x", "{" + invalid_name + "}")
+
+
+def test_it_works_on_multiline_string():
+    format_spec = """Hello, {name}
+
+Some other stuff
+"""
+    string = """Hello, world
+
+Some other stuff
+"""
+    result = reverse_format(string, format_spec)
+    assert result["name"] == "world"
