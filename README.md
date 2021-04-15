@@ -1,6 +1,6 @@
 # Changelog
 
-Tool for managing a changelog in the style of [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
+Tool for managing a changelog in the style of [Keep a Changelog].
 
 ### Features:
 
@@ -102,6 +102,39 @@ Or, if you don't use semantic versioning at all, simply specify the tag of the r
 changelog release --tag "2021.r3"
 ```
 
+### Formatting and validation
+
+Using this tool should not preclude manual editing of a changelog. To ensure that manual changes don't break conventions, you can use the following two commands in your development workflow:
+
+Simply check that the changelog is still in a recognisable format:
+```shell
+changelog validate
+```
+
+Format the changelog in a standard manner:
+```shell
+changelog format
+```
+
+### Changelog configuration
+
+This tool stores configuration in the changelog itself. The currently available config fields are:
+
+- `release_link_format` specifies the format for release links
+- `breaking_change_token` specifies the token for breaking changes
+
+Check the value of a config field via:
+
+```shell
+changelog config get --field CONFIG_FIELD
+```
+
+And set it via
+
+```shell
+changelog config set --field CONFIG_FIELD --value VALUE
+```
+
 ## Development
 
 Install dependencies:
@@ -117,3 +150,13 @@ Run tests:
 ```shell
 poetry run inv verify
 ```
+
+## Future improvements
+
+The following is a list of possible future improvements for this tool:
+
+- Support a release-per-change workflow (every change is tagged as a new release)
+- Support configuration of of change types beyond those specified by [Keep a Changelog]
+- Extensions to help interaction with `git`, e.g. merge conflict resolution and/or validation.
+
+[Keep a Changelog]: http://keepachangelog.com/en/1.0.0/

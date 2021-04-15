@@ -15,6 +15,13 @@ Types of changes are:
 ## [Unreleased]
 ### Added
 * Project started :)
+* CLI for managing changelogs
+  - `changelog init` to create new changelog
+  - `changelog validate` to validate changelog
+  - `changelog format` to format the changelog
+  - `changelog entry` to add entries to changelog
+  - `changelog release` to create a new release in changelog
+  - `changelog config` to manage changelog configuration
 
 [Unreleased]: https://github.com/jacksmith15/changelog/compare/initial..HEAD
 
