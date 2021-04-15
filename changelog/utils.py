@@ -52,7 +52,7 @@ def format_spec_to_regex(format_spec: str) -> re.Pattern:
         output = re.sub(r"\\{(" + group_name + r")\\}", r"(?P<\1>.*)", output, count=1)
         # Set remaining occurences to backreference the group
         output = re.sub(r"\\{(" + group_name + r")\\}", r"(?P=\1)", output)
-    return re.compile(output)
+    return re.compile(output, re.DOTALL)
 
 
 def _format_spec_field_names(format_spec: str) -> set[str]:

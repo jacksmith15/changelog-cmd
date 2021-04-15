@@ -45,3 +45,17 @@ Some other stuff
 """
     result = reverse_format(string, format_spec)
     assert result["name"] == "world"
+
+
+def test_it_works_on_multiline_parameter():
+    format_spec = """Hello, {name}
+
+Some other stuff
+"""
+    string = """Hello, world
+et al
+
+Some other stuff
+"""
+    result = reverse_format(string, format_spec)
+    assert result["name"] == "world\net al"
