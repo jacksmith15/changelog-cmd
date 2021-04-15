@@ -2,6 +2,13 @@
 
 Tool for managing a changelog in the style of [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+### Features:
+
+- Write new changelog entries in a consistent manner
+- Validate and format your changelog
+- Suggest semantic version of releases based on their contents
+- Write scripts which make automated changes and updates to changelogs, whilst keeping the changelog in a human-readable format
+
 ## Installation
 
 TODO
@@ -10,20 +17,25 @@ TODO
 
 ### Starting a changelog
 
-Create a changelog by running
+Create a changelog named `CHANGELOG.md` in the current directory by running
 
 ```shell
 changelog init --release-link-format=RELEASE_LINK_FORMAT
 ```
 
-Where the `--release-link-format` option specifies how to generate links for a given release, and is given using a Python string format specifier. Using GitHub as an example, this format specifier might be:
+Where the `--release-link-format` option specifies how to generate links to a given release, and is given using a Python string format specifier. For example, if you want to link to source on GitHub, this format specifier might be:
 
 - `https://github.com/user/repo/tree/{tag}` - the source code at this release
 - `https://github.com/user/repo/compare/{previous_tag}...{tag}` - a comparison of this release with the one before
 
+Or if you want to link to PyPi, the format might be:
+
+- `https://pypi.org/project/package/{tag}/`
+
 Above you see the two variables available for substitution:
 - `tag` is the tag of the release
 - `previous_tag` is the tag of the previous release
+
 
 ### Finding the changelog
 
@@ -105,7 +117,3 @@ Run tests:
 ```shell
 poetry run inv verify
 ```
-
-## TODOs:
-
-- Initialise a new changelog

@@ -68,7 +68,7 @@ def init(
     path = Path(global_options()["path"])
     if not force and path.exists():
         typer.secho(
-            f"Path {path} already exists. Aborting.",
+            f"Path {path.absolute()} already exists. Aborting.",
             fg="red",
         )
         raise typer.Exit(1)

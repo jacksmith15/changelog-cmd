@@ -11,6 +11,7 @@ from typer.testing import CliRunner, Result
 from changelog import __version__, load_from_file
 from changelog.__main__ import app
 from changelog.model import Entry, ReleaseTag
+from changelog.utils import reverse_format
 
 
 runner = CliRunner()
@@ -58,6 +59,50 @@ def test_it_displays_version():
     result = runner.invoke(app, ["--version"])
     assert_exit_code(result)
     assert result.stdout == f"changelog version {__version__}\n"
+
+
+def test_init_doesnt_overwrite_file(changelog_path: str):
+    result = runner.invoke(app, ["--path", changelog_path, "init", "--release-link-format", "#"])
+    assert_exit_code(result, 1)
+    assert reverse_format(result.output, "Path {changelog_path} already exists", None)
+
+
+def test_init_allows_force_overwrite_file(changelog_path: str):
+    with open(changelog_path, "w") as file:
+        file.write("NOT A CHANGELOG")
+    result = runner.invoke(app, ["--path", changelog_path, "init", "--release-link-format", "#", "--force"])
+    assert_exit_code(result)
+    assert "Changelog initialised" in result.output
+    load_from_file(changelog_path)
+
+
+def test_init_sets_release_link_format_as_option(changelog_path: str):
+    release_link_format = "foo"
+    os.remove(changelog_path)
+    result = runner.invoke(app, ["--path", changelog_path, "init", "--release-link-format", release_link_format])
+    assert_exit_code(result)
+    changelog = load_from_file(changelog_path)
+    assert changelog.config.release_link_format == release_link_format
+
+
+def test_init_sets_release_link_format_with_prompt(changelog_path: str):
+    release_link_format = "foo"
+    os.remove(changelog_path)
+    result = runner.invoke(app, ["--path", changelog_path, "init"], input=release_link_format + "\n")
+    assert_exit_code(result)
+    changelog = load_from_file(changelog_path)
+    assert changelog.config.release_link_format == release_link_format
+
+
+def test_init_sets_and_encodes_breaking_change_as_option(changelog_path: str):
+    os.remove(changelog_path)
+    result = runner.invoke(app, ["--path", changelog_path, "init", "--release-link-format", "#", "--breaking-change-token", "**BREAKING CHANGE**"])
+    assert_exit_code(result)
+    changelog = load_from_file(changelog_path)
+    assert changelog.config.breaking_change_token == "**BREAKING CHANGE**"
+    with open(changelog_path, "r") as file:
+        token = next((line.split(":", 1)[-1].strip() for line in file if line.startswith("[_breaking_change_token]:")), None)
+    assert token == "%2A%2ABREAKING+CHANGE%2A%2A"
 
 
 def test_it_validates_a_valid_changelog(changelog_path: str):
