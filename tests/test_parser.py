@@ -170,7 +170,7 @@ Some random root level text
     "section,expectation",
     SECTION_PARAMS,
 )
-def test_parse_version_section(section: str, expectation: Union[ReleaseSection, Exception]):
+def test_parse_release_section(section: str, expectation: Union[ReleaseSection, Exception]):
     if isinstance(expectation, Exception):
         with pytest.raises(type(expectation)) as exc_info:
             _ = parse_section(section)
@@ -189,13 +189,13 @@ def parse_section(section: str):
     ]
     match = re.match(r"## \[(.+)\]", section)
     if not match:
-        raise ValueError(f"No version tag info in test section: {section}")
-    version = match.groups()[0]
+        raise ValueError(f"No release tag info in test section: {section}")
+    release_tag = match.groups()[0]
     parts = [
         DEFAULT_HEADER,
         section,
-        f"[{version}]: http://example.com",
+        f"[{release_tag}]: http://example.com",
     ]
     changelog_text = "\n".join(parts)
     changelog = loads(changelog_text)
-    return changelog.releases[ReleaseTag(version)]
+    return changelog.releases[ReleaseTag(release_tag)]

@@ -11,7 +11,7 @@ def dumps(changelog: Changelog, indent: int = 2) -> str:
         "\n\n".join(
             [
                 changelog.header.strip(),
-                _render_changelog_versions(changelog.releases, indent=indent),
+                _render_changelog_releases(changelog.releases, indent=indent),
                 _render_changelog_links(changelog.links, set(changelog.releases)),
                 _render_changelog_config(changelog.config),
             ]
@@ -20,12 +20,12 @@ def dumps(changelog: Changelog, indent: int = 2) -> str:
     )
 
 
-def _render_changelog_versions(versions: dict[ReleaseTag, ReleaseSection], indent: int = 2) -> str:
-    return "\n\n".join([render_changelog_version(version, section) for version, section in versions.items()])
+def _render_changelog_releases(releases: dict[ReleaseTag, ReleaseSection], indent: int = 2) -> str:
+    return "\n\n".join([render_changelog_release(release_tag, section) for release_tag, section in releases.items()])
 
 
-def render_changelog_version(version: ReleaseTag, section: ReleaseSection, indent: int = 2) -> str:
-    header = f"## [{version}]"
+def render_changelog_release(release_tag: ReleaseTag, section: ReleaseSection, indent: int = 2) -> str:
+    header = f"## [{release_tag}]"
     if section.timestamp:
         header += f" - {section.timestamp}"
     return "\n".join([header, _render_changelog_change_types(section.entries, indent=indent)])
@@ -59,17 +59,21 @@ def _render_changelog_entry(entry: Entry, indent: int = 2, _indent_level: int = 
     )
 
 
-def _render_changelog_links(links: dict[str, str], versions: set[ReleaseTag]) -> str:
+def _render_changelog_links(links: dict[str, str], release_tags: set[ReleaseTag]) -> str:
     return "\n\n".join(
         [
             "\n".join(
-                [f"[{link_name}]: {link_target}" for link_name, link_target in links.items() if link_name in versions]
+                [
+                    f"[{link_name}]: {link_target}"
+                    for link_name, link_target in links.items()
+                    if link_name in release_tags
+                ]
             ),
             "\n".join(
                 [
                     f"[{link_name}]: {link_target}"
                     for link_name, link_target in links.items()
-                    if link_name not in versions
+                    if link_name not in release_tags
                 ]
             ),
         ]

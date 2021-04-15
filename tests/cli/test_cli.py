@@ -244,17 +244,17 @@ def test_it_cuts_a_release_with_a_specific_tag(changelog_path: str):
     ],
 )
 @pytest.mark.parametrize(
-    "initial_version",
+    "initial_tag",
     [
         "0.1.0",
         "1.0.0",
     ],
 )
-def test_it_cuts_a_release_with_auto_version(
-    changelog_path: str, change_type: str, breaking_change: bool, initial_version: str
+def test_it_cuts_a_release_with_auto_release_tag(
+    changelog_path: str, change_type: str, breaking_change: bool, initial_tag: str
 ):
-    # GIVEN the previous release is `initial_version`
-    assert_exit_code(runner.invoke(app, ["--path", changelog_path, "release", "--tag", initial_version]), 0)
+    # GIVEN the previous release is `initial_tag`
+    assert_exit_code(runner.invoke(app, ["--path", changelog_path, "release", "--tag", initial_tag]), 0)
     # AND the unreleased section contains an entry
     assert_exit_code(
         runner.invoke(
@@ -268,21 +268,21 @@ def test_it_cuts_a_release_with_auto_version(
     result = runner.invoke(app, ["--path", changelog_path, "release"])
     # THEN the command exits successfully
     assert_exit_code(result, 0)
-    # AND the changelog has the correct latest version
+    # AND the changelog has the correct latest tag
     changelog = load_from_file(changelog_path)
-    if breaking_change and initial_version == "1.0.0":
+    if breaking_change and initial_tag == "1.0.0":
         expected = "2.0.0"
     else:
         if change_type == "fixed":
             expected = {
                 "0.1.0": "0.1.1",
                 "1.0.0": "1.0.1",
-            }[initial_version]
+            }[initial_tag]
         else:
             expected = {
                 "0.1.0": "0.2.0",
                 "1.0.0": "1.1.0",
-            }[initial_version]
+            }[initial_tag]
     assert changelog.latest_tag == expected
 
 
@@ -297,7 +297,7 @@ def test_it_cuts_a_release_with_specific_bump(
     result = runner.invoke(app, ["--path", changelog_path, "release", "--bump", "major"])
     # THEN the command exits successfully
     assert_exit_code(result, 0)
-    # AND the changelog has the correct latest version
+    # AND the changelog has the correct latest release tag
     changelog = load_from_file(changelog_path)
     assert changelog.latest_tag == "1.0.0"
 

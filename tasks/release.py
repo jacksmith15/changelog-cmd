@@ -8,7 +8,7 @@ from invoke.exceptions import Exit, UnexpectedExit
 from termcolor import colored
 
 import changelog
-from changelog.renderer import render_changelog_version
+from changelog.renderer import render_changelog_release
 from tasks.helpers import package, print_header
 from tasks.verify import verify
 
@@ -26,7 +26,7 @@ def release(ctx, dry_run=False):
     print_header("Starting release")
     validate_branch(ctx)
     print_header("Determining release type", level=2)
-    update_versions()
+    update_release_tags()
     if not verify_diff(ctx):
         raise Exit(code=1, message="Aborted.")
     print_header("Committing, tagging and pushing", level=2)
@@ -65,11 +65,11 @@ def update_file(path: str, processor: Callable[[str], str]):
         file.write(content)
 
 
-def update_versions():
-    current_version: str = package.__version__
+def update_release_tags():
     log = changelog.load_from_file("CHANGELOG.md")
-    next_version, version_content = log.cut_release()
-    if not verify_release(current_version, next_version, render_changelog_version(next_version, version_content)):
+    previous_release_tag: str = changelog.latest_tag or "unknown"
+    release_tag, release_content = log.cut_release()
+    if not verify_release(previous_release_tag, release_tag, render_changelog_release(release_tag, release_content)):
         raise Exit(code=1, message="Aborted.")
 
     print_header("Updating changelog", level=2)
@@ -80,7 +80,7 @@ def update_versions():
         package.__file__,
         lambda content: re.sub(
             r'__version__ *= *".*"',
-            f'__version__ = "{next_version}"',
+            f'__version__ = "{release_tag}"',
             content,
         ),
     )
@@ -90,16 +90,16 @@ def update_versions():
         package.__file__,
         lambda content: re.sub(
             r'version *= *".*"',
-            f'version = "{next_version}"',
+            f'version = "{release_tag}"',
             content,
         ),
     )
 
 
-def verify_release(current_version: str, next_version: str, content: str) -> bool:
+def verify_release(previous_release_tag: str, target_release_tag: str, content: str) -> bool:
     return bool_input(
         f"""
-This release would update to {next_version} from {current_version} due to
+This release would update from {previous_release_tag!r} to {target_release_tag!r} due to
 the following changes:
 
 {content}
@@ -133,8 +133,8 @@ def color_line(line: str) -> str:
     return line
 
 
-def tag_release(ctx, next_version: str):
-    ctx.run(f"git commit -i CHANGELOG.md {package.__file__}.py pyproject.toml -m release/{next_version}")
+def tag_release(ctx, release_tag: str):
+    ctx.run(f"git commit -i CHANGELOG.md {package.__file__}.py pyproject.toml -m release/{release_tag}")
     ctx.run(f"git push origin {RELEASE_BRANCH}")
-    ctx.run(f"git tag -a {next_version} -m {next_version}")
-    ctx.run(f"git push origin {next_version}")
+    ctx.run(f"git tag -a {release_tag} -m {release_tag}")
+    ctx.run(f"git push origin {release_tag}")
