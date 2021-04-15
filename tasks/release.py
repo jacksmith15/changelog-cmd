@@ -17,29 +17,13 @@ RELEASE_BRANCH = "main"
 
 @task(pre=[verify])
 def build(ctx):
+    """Build wheel and sdist."""
     print_header("Building package")
     ctx.run("poetry build")
 
 
-@task(pre=[build])
-def release(ctx, dry_run=False):
-    print_header("Starting release")
-    validate_branch(ctx)
-    print_header("Determining release type", level=2)
-    update_release_tags()
-    if not verify_diff(ctx):
-        raise Exit(code=1, message="Aborted.")
-    print_header("Committing, tagging and pushing", level=2)
-    if not dry_run:
-        tag_release(ctx)
-    if not dry_run:
-        ctx.run("poetry publish")
-    else:
-        ctx.run("poetry publish --dry-run")
-    return
-
-
-def validate_branch(ctx):
+@task()
+def _validate_branch(ctx):
     print_header("Validating local branch", level=2)
     branch = ctx.run("git branch --show-current", hide=True).stdout.strip()
     if branch != RELEASE_BRANCH:
@@ -52,6 +36,24 @@ def validate_branch(ctx):
     status = ctx.run("git status --untracked-files=no", hide=True).stdout
     if f"Your branch is up-to-date with 'origin/{RELEASE_BRANCH}'." not in status:
         raise Exit(code=1, message="Local branch is not up-to-date with remote.")
+
+
+@task(pre=[_validate_branch, build])
+def release(ctx, dry_run=False):
+    """Perform a release, by updating metadata, tagging commit, and publishing."""
+    print_header("Starting release")
+    print_header("Determining release type", level=2)
+    update_release_tags()
+    if not verify_diff(ctx):
+        raise Exit(code=1, message="Aborted.")
+    print_header("Committing, tagging and pushing", level=2)
+    if not dry_run:
+        tag_release(ctx)
+    if not dry_run:
+        ctx.run("poetry publish")
+    else:
+        ctx.run("poetry publish --dry-run")
+    return
 
 
 def bool_input(message, default=True):

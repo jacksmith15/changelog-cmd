@@ -33,6 +33,7 @@ def test(ctx, debug=False, maxfail=0):
 
 @task
 def coverage(ctx):
+    """Open browsable coverage report."""
     path = (_COVERAGE_PATH / "index.html").absolute()
     webbrowser.open(f"file:///{path}")
 
