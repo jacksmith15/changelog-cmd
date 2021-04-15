@@ -31,7 +31,7 @@ def reverse_format(string, format_spec, default=_NOT_PASSED):
         default is provided.
     """
     pattern = format_spec_to_regex(format_spec)
-    if not (match:=pattern.match(string)):
+    if not (match := pattern.match(string)):
         if default is _NOT_PASSED:
             raise ValueError(f"String {string!r} does not match format {format_spec!r}")
         return default
@@ -43,8 +43,10 @@ def format_spec_to_regex(format_spec: str) -> re.Pattern:
     output = re.escape(format_spec)
     group_name_pattern = re.compile(r"\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}")
     group_names = set(group_name_pattern.findall(output))
-    if (invalid_names := _format_spec_field_names(format_spec) - group_names):
-        raise ValueError(f"Unsupported field names in format string, only valid Python identifiers are supported: {invalid_names}")
+    if (invalid_names := _format_spec_field_names(format_spec) - group_names) :
+        raise ValueError(
+            f"Unsupported field names in format string, only valid Python identifiers are supported: {invalid_names}"
+        )
     for group_name in group_names:
         # Set the occurence to declare the group
         output = re.sub(r"\\{(" + group_name + r")\\}", r"(?P<\1>.*)", output, count=1)

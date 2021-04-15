@@ -4,7 +4,6 @@ import typer
 
 from changelog.cli.state import get_changelog, save_changelog
 
-
 app = typer.Typer()
 
 

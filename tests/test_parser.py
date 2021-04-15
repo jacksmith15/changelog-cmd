@@ -5,7 +5,7 @@ import pytest
 
 from changelog import loads
 from changelog.exceptions import ChangelogParseError
-from changelog.model import Entry, ReleaseTag, ReleaseSection
+from changelog.model import Entry, ReleaseSection, ReleaseTag
 from tests.constants import DEFAULT_HEADER
 
 SECTION_PARAMS = [
@@ -14,10 +14,7 @@ SECTION_PARAMS = [
 ### Added
 * A single entry
 """,
-        ReleaseSection(
-            timestamp="2021-04-12",
-            entries={"Added": [Entry("A single entry")]}
-        ),
+        ReleaseSection(timestamp="2021-04-12", entries={"Added": [Entry("A single entry")]}),
         id="single-entry",
     ),
     pytest.param(
@@ -26,10 +23,7 @@ SECTION_PARAMS = [
 * A single entry split over
   multiple lines
 """,
-        ReleaseSection(
-            timestamp="2021-04-12",
-            entries={"Added": [Entry("A single entry split over multiple lines")]}
-        ),
+        ReleaseSection(timestamp="2021-04-12", entries={"Added": [Entry("A single entry split over multiple lines")]}),
         id="single-multiline-entry",
     ),
     pytest.param(
@@ -39,10 +33,7 @@ SECTION_PARAMS = [
 
 * A single entry
 """,
-        ReleaseSection(
-            timestamp="2021-04-12",
-            entries={"Added": [Entry("A single entry")]}
-        ),
+        ReleaseSection(timestamp="2021-04-12", entries={"Added": [Entry("A single entry")]}),
         id="single-entry-with-blank-lines",
     ),
     pytest.param(
@@ -51,10 +42,7 @@ SECTION_PARAMS = [
 * Entry one
 * Entry two
 """,
-        ReleaseSection(
-            timestamp="2021-04-12",
-            entries={"Added": [Entry("Entry one"), Entry("Entry two")]}
-        ),
+        ReleaseSection(timestamp="2021-04-12", entries={"Added": [Entry("Entry one"), Entry("Entry two")]}),
         id="multiple-entries",
     ),
     pytest.param(
@@ -65,10 +53,7 @@ SECTION_PARAMS = [
 ### Fixed
 * A fix
 """,
-        ReleaseSection(
-            timestamp="2021-04-12",
-            entries={"Added": [Entry("A new feature")], "Fixed": [Entry("A fix")]}
-        ),
+        ReleaseSection(timestamp="2021-04-12", entries={"Added": [Entry("A new feature")], "Fixed": [Entry("A fix")]}),
         id="multiple-types",
     ),
     pytest.param(
@@ -93,9 +78,9 @@ SECTION_PARAMS = [
                             Entry("Another child entry"),
                         ],
                     ),
-                    Entry("Another entry")
+                    Entry("Another entry"),
                 ]
-            }
+            },
         ),
         id="nested-entries",
     ),
@@ -121,9 +106,9 @@ SECTION_PARAMS = [
                             Entry("Another child entry"),
                         ],
                     ),
-                    Entry("Another entry")
+                    Entry("Another entry"),
                 ]
-            }
+            },
         ),
         id="nested-entries-with-one-bullet-type",
     ),
@@ -144,7 +129,7 @@ SECTION_PARAMS = [
                         ],
                     ),
                 ]
-            }
+            },
         ),
         id="nested-more-indented-entries",
     ),
@@ -180,6 +165,7 @@ Some random root level text
     ),
 ]
 
+
 @pytest.mark.parametrize(
     "section,expectation",
     SECTION_PARAMS,
@@ -188,9 +174,9 @@ def test_parse_version_section(section: str, expectation: Union[ReleaseSection, 
     if isinstance(expectation, Exception):
         with pytest.raises(type(expectation)) as exc_info:
             _ = parse_section(section)
-        assert re.search(str(expectation), str(exc_info.value)), (
-            f"Expected error message matching {str(expectation)!r}, got {str(exc_info.value)!r}"
-        )
+        assert re.search(
+            str(expectation), str(exc_info.value)
+        ), f"Expected error message matching {str(expectation)!r}, got {str(exc_info.value)!r}"
         return
     section = parse_section(section)
     assert section == expectation

@@ -2,19 +2,22 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-from changelog.model import Changelog, ChangelogConfig, Entry, ReleaseTag, ReleaseSection
+from changelog.model import Changelog, ChangelogConfig, Entry, ReleaseSection, ReleaseTag
 
 
 def dumps(changelog: Changelog, indent: int = 2) -> str:
     changelog.validate()
-    return "\n\n".join(
-        [
-            changelog.header.strip(),
-            _render_changelog_versions(changelog.releases, indent=indent),
-            _render_changelog_links(changelog.links, set(changelog.releases)),
-            _render_changelog_config(changelog.config),
-        ]
-    ) + "\n"
+    return (
+        "\n\n".join(
+            [
+                changelog.header.strip(),
+                _render_changelog_versions(changelog.releases, indent=indent),
+                _render_changelog_links(changelog.links, set(changelog.releases)),
+                _render_changelog_config(changelog.config),
+            ]
+        )
+        + "\n"
+    )
 
 
 def _render_changelog_versions(versions: dict[ReleaseTag, ReleaseSection], indent: int = 2) -> str:
@@ -74,9 +77,7 @@ def _render_changelog_links(links: dict[str, str], versions: set[ReleaseTag]) ->
 
 
 def _render_changelog_config(config: ChangelogConfig) -> str:
-    return "\n".join(
-        [_render_config_field(config, field, value) for field, value in asdict(config).items() if value]
-    )
+    return "\n".join([_render_config_field(config, field, value) for field, value in asdict(config).items() if value])
 
 
 def _render_config_field(config: ChangelogConfig, field: str, value: str) -> str:

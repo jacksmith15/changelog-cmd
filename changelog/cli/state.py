@@ -3,7 +3,7 @@ from functools import cache
 
 import typer
 
-from changelog import load_from_file, dump_to_file
+from changelog import dump_to_file, load_from_file
 from changelog.exceptions import ChangelogParseError, ChangelogValidationError
 from changelog.model import Changelog
 

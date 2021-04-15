@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import re
 from collections import OrderedDict
-from dataclasses import dataclass, Field, field
+from dataclasses import Field, dataclass, field
 from datetime import date
 from enum import Enum
 from typing import Literal, Optional, cast
 from urllib.parse import quote_plus, unquote_plus
+
 from changelog.exceptions import ChangelogError, ChangelogMissingConfigError, ChangelogValidationError
 from changelog.utils import reverse_format
 
@@ -127,9 +128,7 @@ class Changelog:
         self.links[release_tag] = link_spec.format(previous_tag=previous_tag or "initial", tag=release_tag)
         self.links[_UNRELEASED] = link_spec.format(
             previous_tag=release_tag,
-            tag=reverse_format(self.links[_UNRELEASED], link_spec, cast(dict[str, str], {})).get(
-                "tag", "HEAD"
-            ),
+            tag=reverse_format(self.links[_UNRELEASED], link_spec, cast(dict[str, str], {})).get("tag", "HEAD"),
         )
         # Reorder links
         self.links.move_to_end(release_tag, last=False)

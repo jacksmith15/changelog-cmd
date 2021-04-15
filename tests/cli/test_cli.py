@@ -13,7 +13,6 @@ from changelog.__main__ import app
 from changelog.model import Entry, ReleaseTag
 from changelog.utils import reverse_format
 
-
 runner = CliRunner()
 
 
@@ -96,12 +95,25 @@ def test_init_sets_release_link_format_with_prompt(changelog_path: str):
 
 def test_init_sets_and_encodes_breaking_change_as_option(changelog_path: str):
     os.remove(changelog_path)
-    result = runner.invoke(app, ["--path", changelog_path, "init", "--release-link-format", "#", "--breaking-change-token", "**BREAKING CHANGE**"])
+    result = runner.invoke(
+        app,
+        [
+            "--path",
+            changelog_path,
+            "init",
+            "--release-link-format",
+            "#",
+            "--breaking-change-token",
+            "**BREAKING CHANGE**",
+        ],
+    )
     assert_exit_code(result)
     changelog = load_from_file(changelog_path)
     assert changelog.config.breaking_change_token == "**BREAKING CHANGE**"
     with open(changelog_path, "r") as file:
-        token = next((line.split(":", 1)[-1].strip() for line in file if line.startswith("[_breaking_change_token]:")), None)
+        token = next(
+            (line.split(":", 1)[-1].strip() for line in file if line.startswith("[_breaking_change_token]:")), None
+        )
     assert token == "%2A%2ABREAKING+CHANGE%2A%2A"
 
 

@@ -5,11 +5,10 @@ from typing import Optional, cast
 import typer
 
 from changelog import __version__
+from changelog.cli.constants import default_changelog
+from changelog.cli.state import get_changelog, global_options, save_changelog
 from changelog.exceptions import ChangelogMissingConfigError
 from changelog.model import Bump, ChangeType
-from changelog.cli.constants import default_changelog
-from changelog.cli.state import get_changelog, save_changelog, global_options
-
 
 app = typer.Typer()
 
@@ -55,6 +54,7 @@ Optionally may contain the following vars for substitution:
 
 """
 
+
 @app.command()
 def init(
     force: bool = typer.Option(False, help="If set, override any existing file at target location."),
@@ -63,7 +63,7 @@ def init(
         prompt=f"Please specify the format for release links. {_RELEASE_LINK_DESCRIPTION}",
         help=f"Format string for release links. {_RELEASE_LINK_DESCRIPTION}",
     ),
-    breaking_change_token: str = typer.Option("BREAKING", help="Token used to indicate breaking changes.")
+    breaking_change_token: str = typer.Option("BREAKING", help="Token used to indicate breaking changes."),
 ):
     path = Path(global_options()["path"])
     if not force and path.exists():
@@ -73,7 +73,9 @@ def init(
         )
         raise typer.Exit(1)
 
-    save_changelog(default_changelog(release_link_format=release_link_format, breaking_change_token=breaking_change_token))
+    save_changelog(
+        default_changelog(release_link_format=release_link_format, breaking_change_token=breaking_change_token)
+    )
     typer.secho(f"Changelog initialised at '{path.absolute()}'", fg="green")
 
 

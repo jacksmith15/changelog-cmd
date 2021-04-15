@@ -2,7 +2,6 @@ import shutil
 
 import changelog as package
 
-
 _HEADER_LEVEL_CHARACTERS = {1: "#", 2: "=", 3: "-"}
 
 

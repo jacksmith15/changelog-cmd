@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from changelog.exceptions import ChangelogParseError
-from changelog.model import Changelog, Entry, ReleaseTag, ReleaseSection
+from changelog.model import Changelog, Entry, ReleaseSection, ReleaseTag
 
 
 @dataclass
@@ -39,9 +39,9 @@ class ParserState:
     def flush(self) -> None:
         if self.release_tag and self.change_type and self.root_entry:
             tag, timestamp = self.release_tag
-            self.changelog.releases.setdefault(
-                tag, ReleaseSection(entries={}, timestamp=timestamp)
-            ).entries.setdefault(self.change_type, []).append(self.root_entry)
+            self.changelog.releases.setdefault(tag, ReleaseSection(entries={}, timestamp=timestamp)).entries.setdefault(
+                self.change_type, []
+            ).append(self.root_entry)
             self.entry_stack = []
 
 

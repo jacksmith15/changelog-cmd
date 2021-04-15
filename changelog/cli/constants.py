@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from changelog.model import Changelog, ChangelogConfig, ReleaseTag, ReleaseSection
+from changelog.model import Changelog, ChangelogConfig, ReleaseSection, ReleaseTag
 
 
 def default_changelog(release_link_format: str, breaking_change_token: str = "BREAKING"):
@@ -34,5 +34,5 @@ Types of changes are:
                 "Keep a Changelog": "http://keepachangelog.com/en/1.0.0/",
                 "Semantic Versioning": "http://semver.org/spec/v2.0.0.html",
             },
-        )
+        ),
     )
