@@ -57,5 +57,5 @@ et al
 
 Some other stuff
 """
-    result = reverse_format(string, format_spec)
+    result = reverse_format(string, format_spec, multiline=True)
     assert result["name"] == "world\net al"

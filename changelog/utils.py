@@ -18,7 +18,7 @@ def reverse_format(string: str, format_spec: str, default: DefaultT) -> Union[di
     ...  # pragma: no cover
 
 
-def reverse_format(string, format_spec, default=_NOT_PASSED):
+def reverse_format(string, format_spec, default=_NOT_PASSED, multiline: bool = False):
     """Inverse of `format`.
 
     Returns a mapping of the format_spec field names to their values in `string`.
@@ -27,10 +27,11 @@ def reverse_format(string, format_spec, default=_NOT_PASSED):
     :param format_spec: The format spec which describes the string fields. Field names must
         be valid Python identifiers.
     :param default: Optional value to return if string does not match the format spec.
+    :param multiline: If true, allow parameters values to include newlines.
     :raises ValueError: if format spec is invalid, or does not match the string and no
         default is provided.
     """
-    pattern = format_spec_to_regex(format_spec)
+    pattern = format_spec_to_regex(format_spec, multiline=multiline)
     if not (match := pattern.match(string)):
         if default is _NOT_PASSED:
             raise ValueError(f"String {string!r} does not match format {format_spec!r}")
@@ -38,8 +39,13 @@ def reverse_format(string, format_spec, default=_NOT_PASSED):
     return match.groupdict()
 
 
-def format_spec_to_regex(format_spec: str) -> re.Pattern:
-    """Convert a Python format spec string to a regex pattern with named groups."""
+def format_spec_to_regex(format_spec: str, multiline: bool = False) -> re.Pattern:
+    """Convert a Python format spec string to a regex pattern with named groups.
+
+    :param format_spec: The format spec to convert.
+    :param multiline: If true, allow parameters to include newlines. Adds the re.DOTALL flag
+        under-the-hood.
+    """
     output = re.escape(format_spec)
     group_name_pattern = re.compile(r"\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}")
     group_names = set(group_name_pattern.findall(output))
@@ -52,7 +58,8 @@ def format_spec_to_regex(format_spec: str) -> re.Pattern:
         output = re.sub(r"\\{(" + group_name + r")\\}", r"(?P<\1>.*)", output, count=1)
         # Set remaining occurences to backreference the group
         output = re.sub(r"\\{(" + group_name + r")\\}", r"(?P=\1)", output)
-    return re.compile(output, re.DOTALL)
+    flags = [re.DOTALL] if multiline else []
+    return re.compile(output, *flags)
 
 
 def _format_spec_field_names(format_spec: str) -> set[str]:
