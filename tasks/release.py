@@ -67,7 +67,7 @@ def update_file(path: str, processor: Callable[[str], str]):
 
 def update_release_tags():
     log = changelog.load_from_file("CHANGELOG.md")
-    previous_release_tag: str = changelog.latest_tag or "unknown"
+    previous_release_tag: str = log.latest_tag or "unknown"
     release_tag, release_content = log.cut_release()
     if not verify_release(previous_release_tag, release_tag, render_changelog_release(release_tag, release_content)):
         raise Exit(code=1, message="Aborted.")
