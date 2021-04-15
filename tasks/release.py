@@ -67,7 +67,7 @@ def update_file(path: str, processor: Callable[[str], str]):
         file.write(content)
 
 
-def update_release_tags():
+def update_release_tags() -> None:
     log = changelog.load_from_file("CHANGELOG.md")
     previous_release_tag: str = log.latest_tag or "unknown"
     release_tag, release_content = log.cut_release()
@@ -75,7 +75,7 @@ def update_release_tags():
         raise Exit(code=1, message="Aborted.")
 
     print_header("Updating changelog", level=2)
-    changelog.write_to_file(log, "CHANGELOG.md")
+    changelog.dump_to_file(log, "CHANGELOG.md")
 
     print_header(f"Updating {package.__file__}", level=2)
     update_file(
