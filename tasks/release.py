@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from itertools import takewhile
+from collections.abc import Callable
 
 from invoke import task
 from invoke.exceptions import Exit, UnexpectedExit
@@ -10,12 +10,19 @@ from termcolor import colored
 import changelog
 from changelog.renderer import render_changelog_version
 from tasks.helpers import package, print_header
+from tasks.verify import verify
 
 RELEASE_BRANCH = "main"
 
 
-@task()
-def release(ctx):
+@task(pre=[verify])
+def build(ctx):
+    print_header("Building package")
+    ctx.run("poetry build")
+
+
+@task(pre=[build])
+def release(ctx, dry_run=False):
     print_header("Starting release")
     validate_branch(ctx)
     print_header("Determining release type", level=2)
@@ -23,7 +30,12 @@ def release(ctx):
     if not verify_diff(ctx):
         raise Exit(code=1, message="Aborted.")
     print_header("Committing, tagging and pushing", level=2)
-    tag_release(ctx)
+    if not dry_run:
+        tag_release(ctx)
+    if not dry_run:
+        ctx.run("poetry publish")
+    else:
+        ctx.run("poetry publish --dry-run")
     return
 
 
@@ -46,6 +58,13 @@ def bool_input(message, default=True):
     return input(message + (" [Y/n] " if default else " [y/N] ")).lower().startswith("n" if default else "y") ^ default
 
 
+def update_file(path: str, processor: Callable[[str], str]):
+    with open(path, "r") as file:
+        content = processor(file.read())
+    with open(path, "w") as file:
+        file.write(content)
+
+
 def update_versions():
     current_version: str = package.__version__
     log = changelog.load_from_file("CHANGELOG.md")
@@ -57,25 +76,24 @@ def update_versions():
     changelog.write_to_file(log, "CHANGELOG.md")
 
     print_header(f"Updating {package.__file__}", level=2)
-    with open(package.__file__, "r", encoding="utf8") as file:
-        new_init = [
-            *takewhile(lambda l: not re.match(r"^__version__ = .*", l), file),
-            f'__version__ = "{next_version}"\n',
-            *file,
-        ]
-    with open(package.__file__, "w", encoding="utf8") as file:
-        file.writelines(new_init)
+    update_file(
+        package.__file__,
+        lambda content: re.sub(
+            r'__version__ *= *".*"',
+            f'__version__ = "{next_version}"',
+            content,
+        ),
+    )
 
     print_header("Updating pyproject.toml", level=2)
-    with open("pyproject.toml", "r", encoding="utf8") as file:
-        new_pyproject = [
-            *takewhile(lambda l: not re.match(r"^version = .*", l), file),
-            'version = "{new_version}"\n',
-            *file,
-        ]
-
-    with open("pyproject.toml", "w", encoding="utf8") as file:
-        file.writelines(new_pyproject)
+    update_file(
+        package.__file__,
+        lambda content: re.sub(
+            r'version *= *".*"',
+            f'version = "{next_version}"',
+            content,
+        ),
+    )
 
 
 def verify_release(current_version: str, next_version: str, content: str) -> bool:
