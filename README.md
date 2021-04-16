@@ -1,4 +1,6 @@
-# Changelog
+# changelog-cmd
+
+![example workflow](https://github.com/jacksmith15/changelog-cmd/actions/workflows/main.yml/badge.svg)
 
 Tool for managing a changelog in the style of [Keep a Changelog].
 
