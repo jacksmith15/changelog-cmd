@@ -43,12 +43,15 @@ def release(ctx, dry_run=False):
     """Perform a release, by updating metadata, tagging commit, and publishing."""
     print_header("Starting release")
     print_header("Determining release type", level=2)
-    update_release_tags()
+    release_tag = update_release_tags()
     if not verify_diff(ctx):
         raise Exit(code=1, message="Aborted.")
+
     print_header("Committing, tagging and pushing", level=2)
     if not dry_run:
-        tag_release(ctx)
+        tag_release(ctx, release_tag)
+
+    print_header("Publishing to PyPi", level=2)
     if not dry_run:
         ctx.run("poetry publish")
     else:
@@ -67,7 +70,7 @@ def update_file(path: str, processor: Callable[[str], str]):
         file.write(content)
 
 
-def update_release_tags() -> None:
+def update_release_tags() -> str:
     log = changelog.load_from_file("CHANGELOG.md")
     previous_release_tag: str = log.latest_tag or "unknown"
     release_tag, release_content = log.cut_release()
@@ -96,6 +99,7 @@ def update_release_tags() -> None:
             content,
         ),
     )
+    return release_tag
 
 
 def verify_release(previous_release_tag: str, target_release_tag: str, content: str) -> bool:
