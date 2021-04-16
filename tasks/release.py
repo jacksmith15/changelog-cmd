@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
+from pathlib import Path
 
 from invoke import task
 from invoke.exceptions import Exit, UnexpectedExit
@@ -140,7 +141,8 @@ def color_line(line: str) -> str:
 
 
 def tag_release(ctx, release_tag: str):
-    ctx.run(f"git commit -i CHANGELOG.md {package.__file__}.py pyproject.toml -m release/{release_tag}")
+    files = ["CHANGELOG.md", "pyproject.toml", Path(changelog.__file__).relative_to(Path(".").absolute())]
+    ctx.run(f"git commit -i {' '.join(files)} -m release/{release_tag}")
     ctx.run(f"git push origin {RELEASE_BRANCH}")
     ctx.run(f"git tag -a {release_tag} -m {release_tag}")
     ctx.run(f"git push origin {release_tag}")
