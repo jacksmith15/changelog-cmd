@@ -30,7 +30,7 @@ jobs:
 
       - name: Update PATH
         shell: bash
-        run: echo "$HOME/.poetry/env" >> $GITHUB_PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: poetry install
