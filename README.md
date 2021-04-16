@@ -159,4 +159,7 @@ The following is a list of possible future improvements for this tool:
 - Support configuration of of change types beyond those specified by [Keep a Changelog]
 - Extensions to help interaction with `git`, e.g. merge conflict resolution and/or validation.
 
+## License
+This project is distributed under the MIT license.
+
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
