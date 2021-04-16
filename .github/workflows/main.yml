@@ -25,12 +25,9 @@ jobs:
           architecture: 'x64'
 
       - name: Install poetry
-        shell: bash
-        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-
-      - name: Update PATH
-        shell: bash
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: |
+          pip install -U pip
+          pip install poetry
 
       - name: Install dependencies
         run: poetry install
