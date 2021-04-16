@@ -13,7 +13,8 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
-
+### Fixed
+* Fixed missing typer dependency in package
 
 ## [0.1.1] - 2021-04-16
 ### Fixed

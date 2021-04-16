@@ -40,7 +40,7 @@ python-versions = "*"
 name = "click"
 version = "7.1.2"
 description = "Composable command line interface toolkit"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -359,7 +359,7 @@ python-versions = "*"
 name = "typer"
 version = "0.3.2"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -391,7 +391,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "6d66c4cdd9b1422d805082e31de35da88fd9087de679b3be2aa87f8c869fc5b2"
+content-hash = "8e3a7d7367e32cdee8fc120f9d10682e15f5b0fc2e919ecbff18b00f67f26adb"
 
 [metadata.files]
 appnope = [

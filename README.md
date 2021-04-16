@@ -13,7 +13,11 @@ Tool for managing a changelog in the style of [Keep a Changelog].
 
 ## Installation
 
-TODO
+Requires Python 3.9 or higher.
+
+```shell
+pip install changelog-cmd
+```
 
 ## Usage
 
