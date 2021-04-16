@@ -93,7 +93,7 @@ def update_release_tags() -> str:
 
     print_header("Updating pyproject.toml", level=2)
     update_file(
-        package.__file__,
+        "pyproject.toml",
         lambda content: re.sub(
             r'version *= *".*"',
             f'version = "{release_tag}"',
