@@ -13,6 +13,9 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
+
+
+## [0.1.1] - 2021-04-16
 ### Fixed
 * Missing package metadata added
 
@@ -27,7 +30,8 @@ Types of changes are:
   - `changelog release` to create a new release in changelog
   - `changelog config` to manage changelog configuration
 
-[Unreleased]: https://github.com/jacksmith15/changelog/compare/0.1.0..HEAD
+[Unreleased]: https://github.com/jacksmith15/changelog/compare/0.1.1..HEAD
+[0.1.1]: https://github.com/jacksmith15/changelog/compare/0.1.0..0.1.1
 [0.1.0]: https://github.com/jacksmith15/changelog/compare/initial..0.1.0
 
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
