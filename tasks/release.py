@@ -141,7 +141,11 @@ def color_line(line: str) -> str:
 
 
 def tag_release(ctx, release_tag: str):
-    files = ["CHANGELOG.md", "pyproject.toml", Path(changelog.__file__).relative_to(Path(".").absolute())]
+    files: list[str] = [
+        "CHANGELOG.md",
+        "pyproject.toml",
+        str(Path(changelog.__file__).relative_to(Path(".").absolute())),
+    ]
     ctx.run(f"git commit -i {' '.join(files)} -m release/{release_tag}")
     ctx.run(f"git push origin {RELEASE_BRANCH}")
     ctx.run(f"git tag -a {release_tag} -m {release_tag}")
