@@ -6,6 +6,9 @@ authors = ["Jack Smith <jack.je.smith@gmail.com>"]
 packages = [
     {include = "changelog"},
 ]
+homepage = "https://github.com/jacksmith15/changelog-cmd"
+repository = "https://github.com/jacksmith15/changelog-cmd"
+readme = "README.md"
 
 [tool.poetry.scripts]
 changelog = "changelog.__main__:app"

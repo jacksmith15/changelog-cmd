@@ -13,7 +13,8 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
-
+### Fixed
+* Missing package metadata added
 
 ## [0.1.0] - 2021-04-16
 ### Added
