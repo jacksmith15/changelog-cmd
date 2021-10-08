@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "changelog-cmd"
-version = "0.1.3"
+version = "0.2.0"
 description = ""
 authors = ["Jack Smith <jack.je.smith@gmail.com>"]
 packages = [
