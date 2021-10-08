@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from typing import Dict, List
 
 from changelog.model import Changelog, ChangelogConfig, Entry, ReleaseSection, ReleaseTag
 
@@ -20,7 +21,7 @@ def dumps(changelog: Changelog, indent: int = 2) -> str:
     )
 
 
-def _render_changelog_releases(releases: dict[ReleaseTag, ReleaseSection], indent: int = 2) -> str:
+def _render_changelog_releases(releases: Dict[ReleaseTag, ReleaseSection], indent: int = 2) -> str:
     return "\n\n".join([render_changelog_release(release_tag, section) for release_tag, section in releases.items()])
 
 
@@ -31,7 +32,7 @@ def render_changelog_release(release_tag: ReleaseTag, section: ReleaseSection, i
     return "\n".join([header, _render_changelog_change_types(section.entries, indent=indent)])
 
 
-def _render_changelog_change_types(change_types: dict[str, list[Entry]], indent: int = 2) -> str:
+def _render_changelog_change_types(change_types: Dict[str, List[Entry]], indent: int = 2) -> str:
     return "\n\n".join(
         [
             _render_changelog_change_type(change_type, entries, indent=indent)
@@ -40,7 +41,7 @@ def _render_changelog_change_types(change_types: dict[str, list[Entry]], indent:
     )
 
 
-def _render_changelog_change_type(change_type: str, entries: list[Entry], indent: int = 2) -> str:
+def _render_changelog_change_type(change_type: str, entries: List[Entry], indent: int = 2) -> str:
     return "\n".join(
         [f"### {change_type}", "\n".join([_render_changelog_entry(entry, indent=indent) for entry in entries])]
     )
@@ -59,7 +60,7 @@ def _render_changelog_entry(entry: Entry, indent: int = 2, _indent_level: int = 
     )
 
 
-def _render_changelog_links(links: dict[str, str], release_tags: set[ReleaseTag]) -> str:
+def _render_changelog_links(links: Dict[str, str], release_tags: set[ReleaseTag]) -> str:
     return "\n\n".join(
         [
             "\n".join(

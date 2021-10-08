@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import List, Optional
 
 from changelog.exceptions import ChangelogParseError
 from changelog.model import Changelog, Entry, ReleaseSection, ReleaseTag
@@ -13,7 +13,7 @@ class ParserState:
     changelog: Changelog = field(default_factory=Changelog)
     release_tag: Optional[tuple[ReleaseTag, Optional[str]]] = None
     change_type: Optional[str] = None
-    entry_stack: list[tuple[Entry, int]] = field(default_factory=list)
+    entry_stack: List[tuple[Entry, int]] = field(default_factory=list)
 
     @property
     def root_entry(self) -> Optional[Entry]:

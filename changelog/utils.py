@@ -1,6 +1,6 @@
 import re
 from string import Formatter
-from typing import TypeVar, Union, overload
+from typing import Dict, Set, TypeVar, Union, overload
 
 _NOT_PASSED = object()
 
@@ -9,12 +9,12 @@ DefaultT = TypeVar("DefaultT")
 
 
 @overload
-def reverse_format(string: str, format_spec: str) -> dict[str, str]:
+def reverse_format(string: str, format_spec: str) -> Dict[str, str]:
     ...  # pragma: no cover
 
 
 @overload
-def reverse_format(string: str, format_spec: str, default: DefaultT) -> Union[dict[str, str], DefaultT]:
+def reverse_format(string: str, format_spec: str, default: DefaultT) -> Union[Dict[str, str], DefaultT]:
     ...  # pragma: no cover
 
 
@@ -62,6 +62,6 @@ def format_spec_to_regex(format_spec: str, multiline: bool = False) -> re.Patter
     return re.compile(output, *flags)
 
 
-def _format_spec_field_names(format_spec: str) -> set[str]:
+def _format_spec_field_names(format_spec: str) -> Set[str]:
     """Extract field names from a format spec."""
     return {name for _, name, __, ___ in Formatter().parse(format_spec) if name is not None}

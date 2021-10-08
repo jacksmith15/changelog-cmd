@@ -13,7 +13,8 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
-
+### Added
+* Added support for Python 3.8
 
 ## [0.1.3] - 2021-10-08
 ### Fixed

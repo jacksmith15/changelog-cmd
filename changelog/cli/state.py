@@ -1,5 +1,5 @@
 import os
-from functools import cache
+from functools import lru_cache
 
 import typer
 
@@ -8,7 +8,7 @@ from changelog.exceptions import ChangelogParseError, ChangelogValidationError
 from changelog.model import Changelog
 
 
-@cache
+@lru_cache(maxsize=None)
 def global_options():
     return {"path": os.getenv("CHANGELOG_PATH", "CHANGELOG.md")}
 

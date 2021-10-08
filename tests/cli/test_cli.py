@@ -1,9 +1,9 @@
 import os
 import traceback
-from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date
 from shutil import copyfile
+from typing import Iterator
 
 import pytest
 from typer.testing import CliRunner, Result

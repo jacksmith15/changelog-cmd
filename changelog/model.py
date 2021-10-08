@@ -5,7 +5,7 @@ from collections import OrderedDict
 from dataclasses import Field, dataclass, field
 from datetime import date
 from enum import Enum
-from typing import Literal, Optional, cast
+from typing import Dict, List, Literal, Optional, Tuple, cast
 from urllib.parse import quote_plus, unquote_plus
 
 from changelog.exceptions import ChangelogError, ChangelogMissingConfigError, ChangelogValidationError
@@ -22,7 +22,7 @@ class Bump(Enum):
 
 class ReleaseTag(str):
     @classmethod
-    def from_semver(cls, semver: tuple[int, int, int]) -> ReleaseTag:
+    def from_semver(cls, semver: Tuple[int, int, int]) -> ReleaseTag:
         return cls(".".join(map(str, semver)))
 
     @property
@@ -30,10 +30,10 @@ class ReleaseTag(str):
         return re.match(r"^\d+\.\d+\.\d+$", self)
 
     @property
-    def semver(self) -> tuple[int, int, int]:
+    def semver(self) -> Tuple[int, int, int]:
         if not self.is_semver:
             raise TypeError(f"ReleaseTag {self!r} is not a semantic version")
-        return cast(tuple[int, int, int], tuple(map(int, self.split("."))))
+        return cast(Tuple[int, int, int], tuple(map(int, self.split("."))))
 
     def bump_semver(self, bump: Bump) -> ReleaseTag:
         semver = list(self.semver)
@@ -52,7 +52,7 @@ class ChangelogConfig:
     breaking_change_token: str = field(default="BREAKING", metadata={"parse": unquote_plus, "render": quote_plus})
 
     @property
-    def fields(self) -> dict[str, Field]:
+    def fields(self) -> Dict[str, Field]:
         return self.__dataclass_fields__  # type: ignore[attr-defined]
 
     def get(self, key: str, default: str = None) -> str:
@@ -113,7 +113,7 @@ class Changelog:
             return self.latest_tag.bump_semver(Bump.MINOR)
         return self.latest_tag.bump_semver(Bump.PATCH)
 
-    def cut_release(self, force: Bump = None, tag: str = None) -> tuple[ReleaseTag, ReleaseSection]:
+    def cut_release(self, force: Bump = None, tag: str = None) -> Tuple[ReleaseTag, ReleaseSection]:
         previous_tag = self.latest_tag
         release_tag = ReleaseTag(tag) if tag else self.next_tag(force=force)
         # Move entries from unreleased to the new tag:
@@ -128,7 +128,7 @@ class Changelog:
         self.links[release_tag] = link_spec.format(previous_tag=previous_tag or "initial", tag=release_tag)
         self.links[_UNRELEASED] = link_spec.format(
             previous_tag=release_tag,
-            tag=reverse_format(self.links[_UNRELEASED], link_spec, cast(dict[str, str], {})).get("tag", "HEAD"),
+            tag=reverse_format(self.links[_UNRELEASED], link_spec, cast(Dict[str, str], {})).get("tag", "HEAD"),
         )
         # Reorder links
         self.links.move_to_end(release_tag, last=False)
@@ -138,11 +138,11 @@ class Changelog:
 
 @dataclass
 class ReleaseSection:
-    entries: dict[str, list[Entry]]
+    entries: Dict[str, List[Entry]]
     timestamp: Optional[str]
 
 
 @dataclass
 class Entry:
     text: str
-    children: list[Entry] = field(default_factory=list)
+    children: List[Entry] = field(default_factory=list)

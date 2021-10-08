@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 import typer
 
@@ -146,7 +146,7 @@ Run the following before cutting a release:
 @app.command()
 def entry(
     change_type: str = typer.Argument(...),
-    message: list[str] = typer.Option(..., "--message", "-m", help="Message describing changelog entry."),
+    message: List[str] = typer.Option(..., "--message", "-m", help="Message describing changelog entry."),
     breaking: bool = typer.Option(False, "--breaking", "-b", help="Mark this change as a breaking change."),
     tag: Optional[str] = typer.Option(
         None, "--tag", "-t", help="Specify the release tag for this entry. Will add to unreleased tag by default."
