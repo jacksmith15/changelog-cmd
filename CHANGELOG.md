@@ -13,7 +13,8 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
-
+### Fixed
+* Unrestrict dependency on typer
 
 ## [0.1.2] - 2021-04-16
 ### Fixed
