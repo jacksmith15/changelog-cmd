@@ -13,6 +13,9 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
+
+
+## [0.1.3] - 2021-10-08
 ### Fixed
 * Unrestrict dependency on typer
 
@@ -35,7 +38,8 @@ Types of changes are:
   - `changelog release` to create a new release in changelog
   - `changelog config` to manage changelog configuration
 
-[Unreleased]: https://github.com/jacksmith15/changelog/compare/0.1.2..HEAD
+[Unreleased]: https://github.com/jacksmith15/changelog/compare/0.1.3..HEAD
+[0.1.3]: https://github.com/jacksmith15/changelog/compare/0.1.2..0.1.3
 [0.1.2]: https://github.com/jacksmith15/changelog/compare/0.1.1..0.1.2
 [0.1.1]: https://github.com/jacksmith15/changelog/compare/0.1.0..0.1.1
 [0.1.0]: https://github.com/jacksmith15/changelog/compare/initial..0.1.0
